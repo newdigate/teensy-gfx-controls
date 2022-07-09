@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.10)
+project(teensy_gfx_controls C CXX)
+
+set(SOURCE_FILES
+		teensy_controls.cpp
+		)
+
+set(HEADER_FILES
+		teensy_controls.h
+		)
+
+
+teensy_add_library(teensy_gfx_controls ${SOURCE_FILES})
+#teensy_target_link_libraries(launch_ctrl Audio USBHost_t36 ST7735_t3  arm_math SD SdFat  SPI SerialFlash  Wire  cores )
+#target_link_libraries(teensy_gfx.elf m stdc++)

@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.10)
+project(teensy-gfx-controls C CXX)
+set(CMAKE_CXX_STANDARD 17)
+IF (DEFINED BUILD_FOR_TEENSY)
+    include(CMakeLists.teensy.cmake.in)
+ELSE()
+    include(CMakeLists.linux.cmake.in)
+ENDIF()
