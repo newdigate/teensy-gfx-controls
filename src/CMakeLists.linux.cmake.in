@@ -10,6 +10,9 @@ include_directories(${teensy_x86_stubs_INCLUDE_DIR})
 find_package(teensy_gfx)
 include_directories(${teensy_gfx_INCLUDE_DIR})
 
+find_package(teensy_x86_encoder_stubs)
+include_directories(${teensy_x86_encoder_stubs_INCLUDE_DIR})
+
 set(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include/teensy_gfx_controls/)
 set(LIB_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/lib/teensy_gfx_controls)
 set(SOURCE_FILES
