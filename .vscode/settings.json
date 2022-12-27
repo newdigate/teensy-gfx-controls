@@ -1,0 +1,19 @@
+{
+    "boost-test-adapter.logpanel": true,
+    "boost-test-adapter.testExecutable": "cmake-build-debug/test_x86/testteensypolyphony",
+    "cmake.buildDirectory": "${workspaceFolder}/cmake-build-${variant:buildType}",
+    "cmake.configureSettings": {
+        "CMAKE_BUILD_TYPE": "${buildType}"        
+    },
+    "boost-test-adapter.cwd": "${workspaceFolder}",
+    "cmake.generator": "Unix Makefiles",
+    "cmake.debugConfig": {
+    },
+    "cmake.configureArgs": [
+         "-DBUILD_EXAMPLE=On",
+        //"-DBUILD_EXAMPLE=Off",
+    ],
+    "files.associations": {
+        "ios": "cpp"
+    },
+}

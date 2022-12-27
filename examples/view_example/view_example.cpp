@@ -9,7 +9,8 @@
 #include <Encoder.h>
 #include <Bounce2.h>
 #include "teensy_controls.h"
-
+#include "VirtualView.h"
+#include "TFTPianoDisplay.h"
 #define DEBOUNCE    150
 
 Bounce2::Button button = Bounce2::Button();
@@ -17,37 +18,21 @@ Encoder encoderLeftRight;
 Encoder encoderUpDown;
 
 st7735_opengl<Encoder, Bounce2::Button> Display(true, 20, &encoderLeftRight, &encoderUpDown, &button);
+void ctrlUpdateFn(int16_t x, int16_t y);
 
 VirtualView framebuffer = VirtualView(Display, 10, 10, 108, 108);
-ViewController< VirtualView > viewController(framebuffer, encoderUpDown, encoderLeftRight);
+TeensyControl ctrl(framebuffer, ctrlUpdateFn, 128, 64, 0, 0);
 
-void ctrlUpdateFn(int16_t x, int16_t y);
-void ctrl2UpdateFn(int16_t x, int16_t y);
-void ctrl3UpdateFn(int16_t x, int16_t y);
+ViewController<TeensyControl> viewController(ctrl, encoderUpDown, encoderLeftRight);
 
-
-TeensyControl ctrl(ctrlUpdateFn, 128, 64, 0, 0);
-TeensyControl ctrl2(ctrl2UpdateFn, 128, 32, 0, 64);
-TeensyControl ctrl3(ctrl3UpdateFn, 128, 16, 0, 96);
+TFTPianoDisplay pianoDisplay1a(ctrl, 3, 3, 0, 16); //tft, byte octaves, byte startOctave, byte x, byte y
 
 void ctrlUpdateFn(int16_t x, int16_t y) {
   //framebuffer.fillScreen(ST7735_BLACK);
-  framebuffer.fillRect(ctrl.X()+x, ctrl.Y()+y, ctrl.Width(), ctrl.Height(), ST7735_GREEN);
-  framebuffer.setTextColor(ST7735_WHITE);
-  framebuffer.drawString("Control-1ddddddd", ctrl.X()+x, ctrl.Y()+y);
-}
-
-void ctrl2UpdateFn(int16_t x, int16_t y) {
-  //framebuffer.fillScreen(ST7735_BLACK);
-  framebuffer.fillRect(ctrl2.X()+x, ctrl2.Y()+y, ctrl2.Width(), ctrl2.Height(), ST7735_RED);
-  framebuffer.setTextColor(ST7735_WHITE);
-  framebuffer.drawString("Control2asdasdasd", ctrl2.X()+x, ctrl2.Y()+y);
-}
-void ctrl3UpdateFn(int16_t x, int16_t y) {
-  //framebuffer.fillScreen(ST7735_BLACK);
-  framebuffer.fillRect(ctrl3.X()+x, ctrl3.Y()+y, ctrl3.Width(), ctrl3.Height(), ST7735_BLUE);
-  framebuffer.setTextColor(ST7735_WHITE);
-  framebuffer.drawString("Control/3asdasdasd", ctrl3.X()+x, ctrl3.Y()+y);
+  ctrl.fillRect(0, 0, 128, 64, ST7735_GREEN);
+  ctrl.setTextColor(ST7735_WHITE);
+  ctrl.drawString("Control-1ddddddd", 0, 0);
+  pianoDisplay1a.drawFullPiano();
 }
 
 void setup() {
@@ -64,15 +49,12 @@ void setup() {
   Display.fillScreen(ST7735_BLACK);
 
   viewController.AddControl(&ctrl);
-  viewController.AddControl(&ctrl2);
-  viewController.AddControl(&ctrl3);
-
 }
 
 void loop() {
   viewController.Update();
+  pianoDisplay1a.keyDown(64);
 }
-
 
 int st7735_main(int numArgs, char **args) {
     /*

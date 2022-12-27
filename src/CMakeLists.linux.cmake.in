@@ -14,16 +14,17 @@ find_package(teensy_x86_encoder_stubs)
 include_directories(${teensy_x86_encoder_stubs_INCLUDE_DIR})
 
 set(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include/teensy_gfx_controls/)
-set(LIB_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/lib/teensy_gfx_controls)
+#set(LIB_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/lib/teensy_gfx_controls)
 set(SOURCE_FILES
 		teensy_controls.cpp
 		)
 
 set(HEADER_FILES
 		teensy_controls.h
+		VirtualView.h
 		)
 
-add_library(teensy_gfx_controls SHARED STATIC ${HEADER_FILES} ${SOURCE_FILES})
+add_library(teensy_gfx_controls INTERFACE ${HEADER_FILES} ${SOURCE_FILES})
 
 set_target_properties(teensy_gfx_controls PROPERTIES PUBLIC_HEADER "${HEADER_FILES}")
 

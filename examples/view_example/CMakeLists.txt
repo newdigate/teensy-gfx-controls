@@ -26,6 +26,9 @@ include_directories(${teensy_x86_sd_stubs_INCLUDE_DIR})
 find_package(teensy_x86_midi_stubs)
 include_directories(${teensy_x86_midi_stubs_INCLUDE_DIR})
 
+find_package(arduino_tftpianoview)
+include_directories(${arduino_tftpianoview_INCLUDE_DIR})
+
 find_path(RTMIDI_INCLUDE_DIR RtMidi.h
   PATHS
     /usr/local/include
