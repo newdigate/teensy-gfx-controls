@@ -8,6 +8,8 @@
 #include <Encoder.h>
 #include <Bounce2.h>
 #include "teensy_controls.h"
+#include "VirtualView.h"
+
 #include <math.h>
 #define DEBOUNCE    150
 
@@ -29,7 +31,7 @@ void setup() {
   button.setPressedState(LOW); 
 
   delay(10);
-  Display.initR(INITR_GREENTAB);
+  //Display.initR(INITR_GREENTAB);
   Display.setRotation(1);
   Display.fillScreen(ST7735_BLACK);
  

@@ -1,0 +1,36 @@
+{
+    "name": "TeensyVirtualTFTFramebuffer",
+    "frameworks": "Arduino",
+    "platforms": "Teensy",
+    "keywords": "tft, virtual, framebuffer, gfx, adafruit",
+    "description": "Virtual framebuffer for 16 tft displays",
+    "url": "https://github.com/newdigate/teensy-gfx",
+    "version": "1.0.1",
+    "export": {
+      "exclude": [
+        ".vscode",
+        ".github",
+        "extras",
+        "test",
+        "cmake"
+      ]
+    },
+    "authors":
+    {
+      "name": "Nic Newdigate",
+      "maintainer": true
+    },
+    "repository":
+    {
+      "type": "git",
+      "url": "https://github.com/newdigate/teensy-gfx"
+    },
+    "dependencies":[{
+        "name": "Audio",
+        "frameworks": "arduino"
+    }],
+    "examples": [
+      "examples/*/*.ino",
+      "examples/*/*/*.ino"
+    ]
+  }
