@@ -36,12 +36,17 @@ public:
         return _xOffset;
     }
 
+    virtual void ClearBackground() {
+        fillRect(_left, _top, _width, _height, ST7735_BLACK);
+    }
+
     void XOffset(int16_t xOffset) {
+        ClearBackground();
         _xOffset = xOffset;
     }
 
     void XOffsetDelta(int16_t deltaXOffset) {
-        _xOffset += deltaXOffset;
+        XOffset(_xOffset + deltaXOffset );
     }
 
     int16_t YOffset() {
@@ -49,11 +54,12 @@ public:
     }
 
     void YOffset(int16_t yOffset) {
+        ClearBackground();
         _yOffset = yOffset;
     }
 
     void YOffsetDelta(int16_t deltaYOffset) {
-        _yOffset += deltaYOffset;
+        YOffset(_yOffset + deltaYOffset );
     }
 
     virtual void Pixel(int16_t x, int16_t y, uint16_t color) {

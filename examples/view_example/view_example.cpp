@@ -17,8 +17,8 @@ Bounce2::Button button = Bounce2::Button();
 Encoder encoderLeftRight;
 Encoder encoderUpDown;
 
-st7735_opengl<Encoder, Bounce2::Button> Display(true, 20, &encoderLeftRight, &encoderUpDown, &button);
-void ctrlUpdateFn(int16_t x, int16_t y);
+st7735_opengl<Encoder, Bounce2::Button> Display(true, 20, &encoderUpDown, &encoderLeftRight, &button);
+void ctrlUpdateFn();
 
 VirtualView framebuffer = VirtualView(Display, 10, 10, 108, 108);
 TeensyControl ctrl(framebuffer, ctrlUpdateFn, 128, 64, 0, 0);
@@ -27,7 +27,7 @@ ViewController<TeensyControl> viewController(ctrl, encoderUpDown, encoderLeftRig
 
 TFTPianoDisplay pianoDisplay1a(ctrl, 3, 3, 0, 16); //tft, byte octaves, byte startOctave, byte x, byte y
 
-void ctrlUpdateFn(int16_t x, int16_t y) {
+void ctrlUpdateFn() {
   //framebuffer.fillScreen(ST7735_BLACK);
   ctrl.fillRect(0, 0, 128, 64, ST7735_GREEN);
   ctrl.setTextColor(ST7735_WHITE);

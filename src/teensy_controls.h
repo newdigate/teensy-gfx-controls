@@ -9,7 +9,7 @@
 
 class TeensyControl : public VirtualView {
 public:
-    TeensyControl(View &view, std::function<void(int16_t,int16_t)> updateFn, unsigned int width, unsigned int height, unsigned int x, unsigned int y) : 
+    TeensyControl(View &view, std::function<void()> updateFn, unsigned int width, unsigned int height, unsigned int x, unsigned int y) : 
         VirtualView (view,  x, y, width, height),
         f_update(updateFn),
         _children()
@@ -19,17 +19,17 @@ public:
     virtual ~TeensyControl() {
     }
 
-    void Update(uint16_t x, uint16_t y) {
+    void Update() {
         if (f_update != nullptr) {
-            f_update(x, y);
+            f_update();
         }
         for (auto && child : _children){
-            child->Update(x, y);
+            child->Update();
         }
     }
 
 private:
-    std::function<void(int16_t,int16_t)> f_update = nullptr;
+    std::function<void()> f_update = nullptr;
     std::vector<TeensyControl *> _children;
 };
 
@@ -62,7 +62,7 @@ public:
         if (!_needsRefresh) 
             return;
         for (auto && ctrl : _controls) {
-            ctrl->Update(0, 0);
+            ctrl->Update();
         }
         _needsRefresh = false;
     }
@@ -93,18 +93,18 @@ public:
             }
             
             if (up) {
-                _display.YOffsetDelta(- 5);
+                _display.YOffsetDelta(- 2);
                 _needsRefresh = true;
             } else if (down) {
-                _display.YOffsetDelta( 5);
+                _display.YOffsetDelta( 2);
                 _needsRefresh = true;
             } 
 
             if (left) {
-                 _display.XOffsetDelta(- 5);
+                 _display.XOffsetDelta(- 2);
                 _needsRefresh = true;
             } else if (right) {
-                 _display.XOffsetDelta( 5);
+                 _display.XOffsetDelta( 2);
                 _needsRefresh = true;
             } 
             
