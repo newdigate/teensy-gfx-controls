@@ -51,7 +51,6 @@ public:
         if (active == _active)
             return;
         _active = active;
-        DrawSceneMenu();
     }
     
     bool Active() {
@@ -110,30 +109,6 @@ public:
             
             oldPosition = Position;
             oldPositionY = PositionY;
-    }
-
-    void DrawSceneMenu() {
-        /*
-        if (!_active)
-        {
-            _display.fillRect(0, 0, 128, 16, ST7735_BLACK);
-            return;
-        }
-
-        int sceneIndex = 0;
-
-        int x = _scenes.size() * 16;
-        _display.fillRect(x, 0, 128, 16, ST7735_WHITE);
-        
-        x = 0;
-        for(auto&& scene : _scenes) {
-            const bool sceneSelected = sceneIndex == _currentScene;
-            const uint16_t * icon = scene->GetIcon(sceneSelected);
-            DrawIcon(icon, x, 0, scene->GetIconWidth(), scene->GetIconHeight());
-            x+=16;
-            sceneIndex++;
-        }
-        */
     }
 
     void AddControl(TeensyControl *control){

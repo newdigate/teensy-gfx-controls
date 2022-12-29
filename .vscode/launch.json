@@ -4,7 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        
         {
             "name": "cmake",
             "type": "cppdbg",
@@ -22,6 +21,18 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/cmake-build-debug/examples/view_example/view_example",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/examples/view_example",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb",
+        },
+        {
+            "name": "debug scene_controller",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/cmake-build-debug/examples/scene_controller/scene_menus",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/examples/view_example",

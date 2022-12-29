@@ -18,8 +18,10 @@ ELSE()
     import_arduino_library(TeensyGFX ${DEPSPATH}/teensy-gfx/src)
     import_arduino_library(Encoder ${DEPSPATH}/Encoder)
 ENDIF()
-if (NOT DEFINED BUILD_EXAMPLE)
-    add_subdirectory(src)
-else()
+
+add_subdirectory(src)
+
+if (DEFINED BUILD_EXAMPLE)
     add_subdirectory(examples/view_example)
+    add_subdirectory(examples/scene_controller)
 endif()
