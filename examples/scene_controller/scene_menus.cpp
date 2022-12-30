@@ -76,7 +76,8 @@ uint16_t TITLE_BACK = C_VALUES[36];
 
 // all icons created at that site and copy / pasted here
 // '64_wireless', 64x64px
-Bounce2::Button button = Bounce2::Button();
+using namespace Bounce2;
+Button button = Button();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // real code starts here
@@ -90,9 +91,8 @@ void ProcessColorMenu();
 Encoder encoderLeftRight;
 Encoder encoderUpDown;
 
-st7735_opengl<Encoder, Bounce2::Button> Display(true, 20, &encoderLeftRight, &encoderUpDown, &button);
-
-SceneController< st7735_opengl<Encoder, Bounce2::Button>, Encoder > sceneController(Display, encoderLeftRight, encoderUpDown);
+st7735_opengl<Encoder, Button> Display(true, 20, &encoderLeftRight, &encoderUpDown, &button);
+SceneController< st7735_opengl<Encoder, Button>, Encoder, Button> sceneController(Display, encoderLeftRight, encoderUpDown, button);
 
 // create encoder object
 void updateSettingsScene() {
