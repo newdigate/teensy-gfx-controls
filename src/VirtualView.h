@@ -101,6 +101,16 @@ public:
         View::drawString(str, x , y);
     }
 
+    int16_t Left() { return  _left; }
+    int16_t Top()  { return  _top; }
+    uint16_t Width() { return  _width; }
+    uint16_t Height() { return  _height; }
+
+    void SetLeft(int16_t left) { _left = left; }
+    void SetTop(int16_t top) { _top = top; }
+    void SetWidth(uint16_t width) { _width = width; }
+    void SetHeight(uint16_t height) { _height = height; }
+
 protected:
     View &_display;
     int16_t _left;

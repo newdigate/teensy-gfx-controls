@@ -28,7 +28,7 @@ public:
         }
     }
 
-private:
+protected:
     std::function<void()> f_update = nullptr;
     std::vector<TeensyControl *> _children;
 };
@@ -135,6 +135,27 @@ protected:
     long Position = 0, oldPosition = 0;
     long PositionY = 0, oldPositionY = 0;
 
+};
+
+class TeensyMenu : public TeensyControl {
+public:
+    TeensyMenu(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y) : 
+        TeensyControl (view, nullptr, x, y, width, height)
+        {
+        }
+
+    virtual ~TeensyMenu() {
+    }
+
+    void AddControl(TeensyControl *control) {
+        control->SetTop( _currentTop );
+        _currentTop += control->Height();
+        _children.push_back(control);
+    }
+     
+protected:
+    int _currentTop = 0;
+    int _selectedIndex = 0;
 };
 
 #endif  //TEENSY_CONTROLS_H
