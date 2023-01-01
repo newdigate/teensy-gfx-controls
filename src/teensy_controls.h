@@ -147,15 +147,45 @@ public:
     virtual ~TeensyMenu() {
     }
 
+    virtual void Update() {
+        if (NeedsUpdate) {
+            TeensyControl::Update();
+            NeedsUpdate = false;
+        }
+    }
+
     void AddControl(TeensyControl *control) {
         control->SetTop( _currentTop );
         _currentTop += control->Height();
         _children.push_back(control);
     }
+
+    bool NeedsUpdate = true;
      
 protected:
     int _currentTop = 0;
     int _selectedIndex = 0;
+};
+
+class TeensyMenuItem : public TeensyControl {
+public:
+    TeensyMenuItem(View &view, std::function<void(View*)> updateWithView, unsigned int height) : 
+        TeensyControl (view, std::bind(&TeensyMenuItem::MenuItemUpdate, this), 128, height, 0, 0),
+        _updateWithView(updateWithView)
+        {
+        }
+
+    virtual ~TeensyMenuItem() {
+    }
+
+    virtual void MenuItemUpdate() { 
+        if (_updateWithView != nullptr) {
+            _updateWithView(&_display);
+        }
+    }
+
+private:
+    std::function<void(View*)> _updateWithView;
 };
 
 #endif  //TEENSY_CONTROLS_H

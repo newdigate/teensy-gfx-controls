@@ -11,9 +11,6 @@
 #define DEBOUNCE    150
 
 //Scene(const uint16_t * iconOn, const uint16_t * iconOff, unsigned int iconWidth, unsigned int iconHeight) 
-Scene settingsScene = Scene(_bmp_settings_on, _bmp_settings_off, 16, 16);
-Scene editScene = Scene(_bmp_edit_on, _bmp_edit_off, 16, 16);
-Scene playScene = Scene(_bmp_play_on, _bmp_play_off, 16, 16);
 
 // MOVED to icons.h:
 // this next rediciously long section is merely the icon image data
@@ -32,18 +29,29 @@ st7735_opengl<Encoder, Button> Display(true, 20, &encoderLeftRight, &encoderUpDo
 SceneController< st7735_opengl<Encoder, Button>, Encoder, Button> sceneController(Display, encoderLeftRight, encoderUpDown, button);
 
 TeensyMenu settingsMenu = TeensyMenu( Display, 0, 0, 128, 128);
+TeensyMenuItem firstSettingMenuItem = TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu1...", 0, 0);}, 8); 
+TeensyMenuItem secondSettingMenuItem = TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu2...", 0, 8);}, 8); 
 
-void updateSettingsScene() {
-  Display.fillScreen(ST7735_BLUE);
-}
+Scene settingsScene = Scene(
+                        _bmp_settings_on, 
+                        _bmp_settings_off, 
+                        16, 16, 
+                        [] { settingsMenu.NeedsUpdate = true; settingsMenu.Update(); }, 
+                        [] { Display.fillScreen(ST7735_BLUE); });
 
-void updateEditScene() {
-  Display.fillScreen(ST7735_RED);
-}
+Scene editScene = Scene(
+                        _bmp_edit_on, 
+                        _bmp_edit_off, 
+                        16, 16,
+                        [] { }, 
+                        [] { Display.fillScreen(ST7735_RED); });
 
-void updatePlayScene() {
-  Display.fillScreen(ST7735_GREEN);
-}
+Scene playScene = Scene(
+                        _bmp_play_on, 
+                        _bmp_play_off, 
+                        16, 16,
+                        [] { }, 
+                        [] { Display.fillScreen(ST7735_GREEN); });                
 
 void setup() {
 
@@ -79,9 +87,12 @@ void setup() {
   sceneController.SetCurrentSceneIndex(0);
   sceneController.SetActive(false);
 
-  settingsScene.SetUpdateFunction(updateSettingsScene);
-  editScene.SetUpdateFunction(updateEditScene);
-  playScene.SetUpdateFunction(updatePlayScene);
+  //settingsScene.SetUpdateFunction(updateSettingsScene);
+  //editScene.SetUpdateFunction(updateEditScene);
+  //playScene.SetUpdateFunction(updatePlayScene);
+
+  settingsMenu.AddControl(&firstSettingMenuItem);
+  settingsMenu.AddControl(&secondSettingMenuItem);
 }
 
 void loop() {

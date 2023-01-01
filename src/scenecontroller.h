@@ -5,11 +5,26 @@
 
 class Scene {
 public:
-    Scene(const uint16_t * iconOn, const uint16_t * iconOff, unsigned int iconWidth, unsigned int iconHeight) : 
+    Scene(
+            const uint16_t * iconOn, 
+            const uint16_t * iconOff, 
+            unsigned int iconWidth, 
+            unsigned int iconHeight, 
+            std::function<void()> update = nullptr, 
+            std::function<void()> initScreen = nullptr, 
+            std::function<void()> buttonPressed = nullptr, 
+            std::function<void(bool)> rotary1Changed = nullptr, 
+            std::function<void(bool)> rotary2Changed = nullptr) : 
         _iconWidth(iconWidth),
         _iconHeight(iconHeight),
         _iconOn(iconOn), 
-        _iconOff(iconOff) {
+        _iconOff(iconOff),
+        f_update(update),
+        f_initScreen(initScreen),
+        f_buttonPressed(buttonPressed),
+        f_rotary1Changed(rotary1Changed),
+        f_rotary2Changed(rotary2Changed)
+    {
     }
 
     virtual ~Scene() {
@@ -43,6 +58,13 @@ public:
         }
     }
 
+    void InitScreen() {
+        if (f_initScreen != nullptr) {
+            f_initScreen();
+        }
+    }
+
+
     void ButtonPressed() {
         if (f_buttonPressed != nullptr) {
             f_buttonPressed();
@@ -66,6 +88,8 @@ private:
     unsigned int _iconHeight;
 
     std::function<void()> f_update = nullptr;
+    std::function<void()> f_initScreen = nullptr;
+
     std::function<void()> f_buttonPressed = nullptr;
     std::function<void(bool)> f_rotary1Changed = nullptr;
     std::function<void(bool)> f_rotary2Changed = nullptr;
@@ -166,21 +190,19 @@ public:
         _button.update();
 
         if (_button.changed() && !_button.fell()) {
-            //Serial.println("TOGGLED");
+            // button has been pressed...
             if (!_active) {
                 _active = true;
                 DrawSceneMenu();
             } else {
                 _active = false;
+                _scenes[_currentScene]->InitScreen();
             }
-        }
-
-        if (!_active) {
-            Update();
+            Serial.println(_active? "Open Menu" : "Close Menu");
+            return;
         }
 
         bool left = false, right = false, up = false, down = false;
-
         Position = _encoderLeftRight.read();
         if ((Position - oldPosition) < 0) {
             left = true;
@@ -201,7 +223,7 @@ public:
         oldPositionY = PositionY;
     
         if (_active) {
-
+            // the scene menu is visible/active
             if (right) {
                 if (_currentScene < _scenes.size()-1) {
                     _currentScene++;
@@ -214,12 +236,23 @@ public:
                     _currentScene = _scenes.size()-1;
             } 
 
-            if (left | right | up | down) {
+            if (left | right) {
                 DrawSceneMenu();
+                _currentSceneNeedsInit = true;
+                Serial.println("_currentSceneNeedsInit = true");
             }
         } else 
         {
+            // the scene menu is hidden and we are rending the current scene
             if (_currentScene > -1) {
+
+                if (_currentSceneNeedsInit) {
+                    _currentSceneNeedsInit = false;
+                    _scenes[_currentScene]->InitScreen();
+                    Serial.println("Current scene: InitScreen");
+                }
+
+                // marshall the inputs to th current scene
                 if (up) {
                     _scenes[_currentScene]->Rotary1Changed(false);
                 } else if (down) {
@@ -232,6 +265,7 @@ public:
                     _scenes[_currentScene]->Rotary2Changed(true);
                 }              
             }
+            Update();
         }
     }
 
@@ -248,6 +282,7 @@ protected:
     TButton &_button;
     Encoder &_encoderUpDown;
     Encoder &_encoderLeftRight;
+    bool _currentSceneNeedsInit = true;
     
     // encoder stuff
     long Position = 0, oldPosition = 0;

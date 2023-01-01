@@ -1,6 +1,8 @@
 # teensy-gfx-controls
 user-interface library for 16-bit color gfx displays
 
+![scene menus](docs/scene_menus.gif)
+
 ## cheatsheet
 * build & install for linux
 ``` shell
