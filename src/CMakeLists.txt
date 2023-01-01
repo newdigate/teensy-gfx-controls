@@ -10,6 +10,7 @@ set(HEADER_FILES
 		teensy_controls.h
 		scenecontroller.h
 		VirtualView.h
+		rect.h
 		)
 
 IF (DEFINED BUILD_FOR_TEENSY)

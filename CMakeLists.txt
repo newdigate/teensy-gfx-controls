@@ -22,6 +22,8 @@ ENDIF()
 add_subdirectory(src)
 
 if (DEFINED BUILD_EXAMPLE)
+    add_subdirectory(examples/basic)
+    add_subdirectory(examples/demo)
     add_subdirectory(examples/view_example)
     add_subdirectory(examples/scene_controller)
 endif()
