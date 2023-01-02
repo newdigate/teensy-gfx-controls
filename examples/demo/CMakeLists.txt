@@ -20,8 +20,9 @@ include_directories(${teensy_gfx_INCLUDE_DIR})
 find_package(teensy_st7735_linux_opengl)
 include_directories(${teensy_st7735_linux_extras_opengl_INCLUDE_DIR})
 
-find_package(teensy_gfx_controls)
-include_directories(${teensy_gfx_controls_INCLUDE_DIR})
+#find_package(teensy_gfx_controls)
+#include_directories(${teensy_gfx_controls_INCLUDE_DIR})
+include_directories(../../src)
 
 find_package(teensy_ili9341_controls)
 include_directories(${teensy_ili9341_controls_INCLUDE_DIR})

@@ -28,16 +28,27 @@ Encoder encoderUpDown;
 st7735_opengl<Encoder, Button> Display(true, 20, &encoderLeftRight, &encoderUpDown, &button);
 SceneController< st7735_opengl<Encoder, Button>, Encoder, Button> sceneController(Display, encoderLeftRight, encoderUpDown, button);
 
+#define NUM_SETTINGS_MENU_ITEMS 10
 TeensyMenu settingsMenu = TeensyMenu( Display, 0, 0, 128, 128);
-TeensyMenuItem firstSettingMenuItem = TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu1...", 0, 0);}, 8); 
-TeensyMenuItem secondSettingMenuItem = TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu2...", 0, 8);}, 8); 
+TeensyMenuItem settingMenuItems[NUM_SETTINGS_MENU_ITEMS] = {
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 1  ", 0, 0);}, 8),
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 2  ", 0, 8);}, 8),
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 3  ", 0, 16);}, 8), 
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 4  ", 0, 24);}, 8), 
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 5  ", 0, 32);}, 8),
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 6  ", 0, 40);}, 8), 
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 7  ", 0, 48);}, 8),
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 8  ", 0, 56);}, 8),
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 9  ", 0, 64);}, 8), 
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu10  ", 0, 72);}, 8) 
+};
 
 Scene settingsScene = Scene(
                         _bmp_settings_on, 
                         _bmp_settings_off, 
                         16, 16, 
-                        [] { settingsMenu.NeedsUpdate = true; settingsMenu.Update(); }, 
-                        [] { Display.fillScreen(ST7735_BLUE); });
+                        [] { settingsMenu.Update(); }, 
+                        [] { Display.fillScreen(ST7735_BLUE); settingsMenu.NeedsUpdate = true; });
 
 Scene editScene = Scene(
                         _bmp_edit_on, 
@@ -91,8 +102,9 @@ void setup() {
   //editScene.SetUpdateFunction(updateEditScene);
   //playScene.SetUpdateFunction(updatePlayScene);
 
-  settingsMenu.AddControl(&firstSettingMenuItem);
-  settingsMenu.AddControl(&secondSettingMenuItem);
+  for (int i = 0; i < NUM_SETTINGS_MENU_ITEMS; i++) {
+    settingsMenu.AddControl(&settingMenuItems[i]);
+  }
 }
 
 void loop() {
