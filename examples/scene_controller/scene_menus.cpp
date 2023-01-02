@@ -28,19 +28,31 @@ Encoder encoderUpDown;
 st7735_opengl<Encoder, Button> Display(true, 20, &encoderLeftRight, &encoderUpDown, &button);
 SceneController< st7735_opengl<Encoder, Button>, Encoder, Button> sceneController(Display, encoderLeftRight, encoderUpDown, button);
 
-#define NUM_SETTINGS_MENU_ITEMS 10
-TeensyMenu settingsMenu = TeensyMenu( Display, 0, 0, 128, 128);
+#define NUM_SETTINGS_MENU_ITEMS 16
+TeensyMenu settingsMenu = TeensyMenu( Display, 10, 10, 108, 108, ST7735_BLUE, ST7735_BLACK );
 TeensyMenuItem settingMenuItems[NUM_SETTINGS_MENU_ITEMS] = {
-  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 1  ", 0, 0);}, 8),
-  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 2  ", 0, 8);}, 8),
-  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 3  ", 0, 16);}, 8), 
-  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 4  ", 0, 24);}, 8), 
-  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 5  ", 0, 32);}, 8),
-  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 6  ", 0, 40);}, 8), 
-  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 7  ", 0, 48);}, 8),
-  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 8  ", 0, 56);}, 8),
-  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 9  ", 0, 64);}, 8), 
-  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu10  ", 0, 72);}, 8) 
+  TeensyMenuItem(settingsMenu, [] (View *v) {
+    v->drawPixel(0,0, ST7735_WHITE);
+    //v->drawString("Menu 1  ", 0, 0);
+  }, 8),
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 2  ", 0, 0);}, 8),
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 3  ", 0, 0);}, 8), 
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 4  ", 0, 0);}, 8), 
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 5  ", 0, 0);}, 8),
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 6  ", 0, 0);}, 8), 
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 7  ", 0, 0);}, 8),
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 8  ", 0, 0);}, 8),
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 9  ", 0, 0);}, 8), 
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu10  ", 0, 0);}, 8),
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu11  ", 0, 0);}, 8), 
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu12  ", 0, 0);}, 8), 
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu13  ", 0, 0);}, 8), 
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu14  ", 0, 0);}, 8), 
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu15  ", 0, 0);}, 8), 
+  TeensyMenuItem(settingsMenu, [] (View *v) {
+    v->drawPixel(0,0, ST7735_WHITE);
+    v->drawString("Menu16  ", 0, 0);
+  }, 8), 
 };
 
 Scene settingsScene = Scene(
@@ -48,7 +60,11 @@ Scene settingsScene = Scene(
                         _bmp_settings_off, 
                         16, 16, 
                         [] { settingsMenu.Update(); }, 
-                        [] { Display.fillScreen(ST7735_BLUE); settingsMenu.NeedsUpdate = true; });
+                        [] { Display.fillScreen(ST7735_BLUE); settingsMenu.NeedsUpdate = true; },
+                        [] {} , // std::function<void()> buttonPressed = nullptr, 
+                        [] (bool forward) { if (forward) settingsMenu.IncreaseSelectedIndex(); else settingsMenu.DecreaseSelectedIndex(); }, //std::function<void(bool)> rotary1Changed = nullptr, 
+                        [] (bool forward) { } //std::function<void(bool)> rotary2Changed = nullptr
+                        );
 
 Scene editScene = Scene(
                         _bmp_edit_on, 

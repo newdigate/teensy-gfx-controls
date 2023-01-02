@@ -139,8 +139,10 @@ protected:
 
 class TeensyMenu : public TeensyControl {
 public:
-    TeensyMenu(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y) : 
-        TeensyControl (view, nullptr, x, y, width, height)
+    TeensyMenu(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y, uint16_t colorMenuItemBackground, uint16_t colorMenuItemBackgroundSelected) : 
+        TeensyControl (view, nullptr, x, y, width, height),
+        _colorMenuItemBackground(colorMenuItemBackground),
+        _colorMenuItemBackgroundSelected(colorMenuItemBackgroundSelected)
         {
         }
 
@@ -149,6 +151,10 @@ public:
 
     virtual void Update() {
         if (NeedsUpdate) {
+            fillRect(0, 0, _width, _height, _colorMenuItemBackground);
+            if (_selectedIndex > -1 && _selectedIndex < _children.size() ) {
+                fillRect(0, _children[_selectedIndex]->Top(), _width, _children[_selectedIndex]->Height(), _colorMenuItemBackgroundSelected);
+            }
             TeensyControl::Update();
             NeedsUpdate = false;
         }
@@ -160,11 +166,48 @@ public:
         _children.push_back(control);
     }
 
+    void IncreaseSelectedIndex() {
+        if (_selectedIndex < _children.size() -1) {
+            _selectedIndex++;
+            NeedsUpdate = true;
+            ScrollIfNeeded();
+        }
+    }
+    void DecreaseSelectedIndex() {
+        if (_selectedIndex > 0 ) {
+            _selectedIndex--;
+            NeedsUpdate = true;
+            ScrollIfNeeded();
+        }
+    }
+
+    void ScrollIfNeeded() {
+        if (_currentTop > _height) {
+
+            int top = 0;
+            for (int j = 0; j < _selectedIndex; j++)
+                top +=  _children[_selectedIndex]->Height();
+
+            int newYOffset = 0;
+            if (top > _height/2) {
+                newYOffset = top - _height/2; 
+            } 
+
+            if (newYOffset != _yOffset) {
+                _yOffset = newYOffset;
+                _display.fillRect(_left, _top, _width, _height, _colorMenuItemBackground);
+            }
+        }
+    }
+
     bool NeedsUpdate = true;
      
 protected:
     int _currentTop = 0;
     int _selectedIndex = 0;
+    uint16_t _colorMenuItemBackground;
+    uint16_t _colorMenuItemBackgroundSelected;
+
 };
 
 class TeensyMenuItem : public TeensyControl {
@@ -180,7 +223,7 @@ public:
 
     virtual void MenuItemUpdate() { 
         if (_updateWithView != nullptr) {
-            _updateWithView(&_display);
+            _updateWithView(this);
         }
     }
 
@@ -188,4 +231,17 @@ private:
     std::function<void(View*)> _updateWithView;
 };
 
+class TeensyMenuController {
+public:
+    TeensyMenuController(TeensyMenu &teensyMenu) :
+        _teensyMenu(teensyMenu)
+        {
+        }
+
+    virtual ~TeensyMenuController() {
+    }
+
+protected:
+    TeensyMenu &_teensyMenu;
+};
 #endif  //TEENSY_CONTROLS_H

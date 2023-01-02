@@ -213,10 +213,10 @@ public:
 
         PositionY = _encoderUpDown.read();
         if ((PositionY - oldPositionY) > 0) {
-            up = true;
+            down = true;
         }
         if ((PositionY - oldPositionY) < 0) {
-            down = true;
+            up = true;
         }
 
         oldPosition = Position;

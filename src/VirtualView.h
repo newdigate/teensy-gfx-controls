@@ -6,6 +6,7 @@
 #define TEENSY_GFX_CONTROLS_VIRTUALVIEW_H
 
 #include "rect.h"
+#include "View.h"
 
 class VirtualView : public View {
 public:
@@ -62,11 +63,10 @@ public:
         YOffset(_yOffset + deltaYOffset );
     }
 
-    virtual void Pixel(int16_t x, int16_t y, uint16_t color) {
-        x = x - _xOffset;
-        y = y - _yOffset;
+    virtual void Pixel(int16_t x, int16_t y, uint16_t color) override{
+
         if (_isClipping) {
-            if ((x < _clipWindowX1) || (x > _clipWindowX2) || (y < _clipWindowY1) || (y > _clipWindowY2))
+            if ((x < _clipWindowX1) || (x > _clipWindowX2) || (y < _clipWindowY1 + _yOffset) || (y > _clipWindowY2 + _yOffset))
                 return;
         }
         if (_isMasking) {
@@ -74,7 +74,20 @@ public:
                 if ((rect->x1 < x < rect->x2) && (rect->y1 < y < rect->y2))
                     return;
         }
+        
+        x = x - _xOffset;
+        y = y - _yOffset;
         _display.drawPixel(x + _left, y + _top, color);
+    }
+
+    void drawPixel(int16_t x, int16_t y, uint16_t color) override
+    {
+        if((x < _displayclipx1) ||(x >= _displayclipx2) || (y < _displayclipy1 + _yOffset) || (y >= _displayclipy2 +_yOffset)) return;
+
+        x += _originx;
+        y += _originy;
+
+        Pixel(x,y, color);
     }
 
     void fillRect(int x, int y, int width, int height, uint16_t color) {
