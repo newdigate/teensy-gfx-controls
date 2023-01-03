@@ -1,6 +1,9 @@
 # teensy graphics controls 
 
-A user-interface library for 16-bit color tft displays. (Work in progress)
+* A portable user-interface library for managing scene controllers, menus, windows and display components, 16-bit color tft displays
+* This code is built for Arduino, but can be compiled and run on linux and mac osx.
+* Optimised for low-memory, and more frequent screen refreshes.  
+* **(Work in progress)**
 
 * using [newdigate/teensy-gfx](https://github.com/newdigate/teensy-gfx), which is based on
   * [adafruit gfx library](https://learn.adafruit.com/adafruit-gfx-graphics-library/overview) 
