@@ -28,7 +28,7 @@ Encoder encoderUpDown;
 st7735_opengl<Encoder, Button> Display(true, 20, &encoderLeftRight, &encoderUpDown, &button);
 SceneController< st7735_opengl<Encoder, Button>, Encoder, Button> sceneController(Display, encoderLeftRight, encoderUpDown, button);
 
-#define NUM_SETTINGS_MENU_ITEMS 16
+#define NUM_SETTINGS_MENU_ITEMS 20
 TeensyMenu settingsMenu = TeensyMenu( Display, 10, 10, 108, 108, ST7735_BLUE, ST7735_BLACK );
 TeensyMenuItem settingMenuItems[NUM_SETTINGS_MENU_ITEMS] = {
   TeensyMenuItem(settingsMenu, [] (View *v) {
@@ -49,9 +49,13 @@ TeensyMenuItem settingMenuItems[NUM_SETTINGS_MENU_ITEMS] = {
   TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu13  ", 0, 0);}, 8), 
   TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu14  ", 0, 0);}, 8), 
   TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu15  ", 0, 0);}, 8), 
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu16  ", 0, 0);}, 8), 
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu17  ", 0, 0);}, 8), 
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu18  ", 0, 0);}, 8), 
+  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu19  ", 0, 0);}, 8), 
   TeensyMenuItem(settingsMenu, [] (View *v) {
     v->drawPixel(0,0, ST7735_WHITE);
-    v->drawString("Menu16  ", 0, 0);
+    v->drawString("Menu20  ", 0, 0);
   }, 8), 
 };
 

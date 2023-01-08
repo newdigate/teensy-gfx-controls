@@ -98,8 +98,8 @@ public:
         //}
         if (x + width > _width)
             width = _width - x;
-        if (y + height > _height)
-            height = _height - y;
+        if (y + height > _height + _yOffset)
+            height = _height + _yOffset - y;
         View::fillRect(x, y, width, height, color);
     }
 

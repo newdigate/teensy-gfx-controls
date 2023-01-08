@@ -151,7 +151,9 @@ public:
 
     virtual void Update() {
         if (NeedsUpdate) {
-            fillRect(0, 0, _width, _height, _colorMenuItemBackground);
+            //fillRect(0, 0, _width, _height, _colorMenuItemBackground);
+            _display.fillRect(_left, _top, _width, _height, _colorMenuItemBackground);
+
             if (_selectedIndex > -1 && _selectedIndex < _children.size() ) {
                 fillRect(0, _children[_selectedIndex]->Top(), _width, _children[_selectedIndex]->Height(), _colorMenuItemBackgroundSelected);
             }
@@ -188,13 +190,24 @@ public:
             for (int j = 0; j < _selectedIndex; j++)
                 top +=  _children[_selectedIndex]->Height();
 
-            int newYOffset = 0;
-            if (top > _height/2) {
+            int maxTop = top;
+            for (int j = _selectedIndex; j < _children.size(); j++)
+                maxTop +=  _children[_selectedIndex]->Height();
+
+            int newYOffset = _yOffset;
+            if (top > maxTop - (_height / 2) ) {
+                newYOffset = maxTop - _height;
+            }  else if (top > _height/2) {
                 newYOffset = top - _height/2; 
-            } 
+            } else if (top <= _height/2) {
+                newYOffset = 0;
+            }
 
             if (newYOffset != _yOffset) {
                 _yOffset = newYOffset;
+                _displayclipy2 = _height - 1 + _yOffset;
+                //_displayclipy1 = _yOffset;
+
                 _display.fillRect(_left, _top, _width, _height, _colorMenuItemBackground);
             }
         }
