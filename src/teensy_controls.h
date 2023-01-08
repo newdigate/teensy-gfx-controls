@@ -188,15 +188,11 @@ public:
 
             int top = 0;
             for (int j = 0; j < _selectedIndex; j++)
-                top +=  _children[_selectedIndex]->Height();
-
-            int maxTop = top;
-            for (int j = _selectedIndex; j < _children.size(); j++)
-                maxTop +=  _children[_selectedIndex]->Height();
+                top += _children[j]->Height();
 
             int newYOffset = _yOffset;
-            if (top > maxTop - (_height / 2) ) {
-                newYOffset = maxTop - _height;
+            if (top >= _currentTop - (_height / 2) ) {
+                newYOffset = _currentTop - _height;
             }  else if (top > _height/2) {
                 newYOffset = top - _height/2; 
             } else if (top <= _height/2) {
