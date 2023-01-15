@@ -136,7 +136,7 @@ protected:
     bool _isClipping = true;
     int _clipWindowX1 = 0, _clipWindowY1 = 0, _clipWindowX2 = 0, _clipWindowY2 = 0;
     bool _isMasking = false;
-    vector<rect *> _maskOutAreas = vector<rect *>();
+    std::vector<rect *> _maskOutAreas = std::vector<rect *>();
 
     inline bool isInRect(int x, int y, int left, int top, int right, int bottom) {
         if (x < left)

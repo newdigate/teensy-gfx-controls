@@ -8,6 +8,8 @@
 #include "icons.h"
 #include "scenecontroller.h"
 #include "teensy_controls.h"
+#include "TFTPianoDisplay.h"
+
 #define DEBOUNCE    150
 
 //Scene(const uint16_t * iconOn, const uint16_t * iconOff, unsigned int iconWidth, unsigned int iconHeight) 
@@ -28,13 +30,12 @@ Encoder encoderUpDown;
 st7735_opengl<Encoder, Button> Display(true, 20, &encoderLeftRight, &encoderUpDown, &button);
 SceneController< st7735_opengl<Encoder, Button>, Encoder, Button> sceneController(Display, encoderLeftRight, encoderUpDown, button);
 
+void DrawSettingsMenuItem0(View *v);
+
 #define NUM_SETTINGS_MENU_ITEMS 20
 TeensyMenu settingsMenu = TeensyMenu( Display, 10, 10, 108, 108, ST7735_BLUE, ST7735_BLACK );
 TeensyMenuItem settingMenuItems[NUM_SETTINGS_MENU_ITEMS] = {
-  TeensyMenuItem(settingsMenu, [] (View *v) {
-    v->drawPixel(0,0, ST7735_WHITE);
-    //v->drawString("Menu 1  ", 0, 0);
-  }, 8),
+  TeensyMenuItem(settingsMenu, DrawSettingsMenuItem0, 16),
   TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 2  ", 0, 0);}, 8),
   TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 3  ", 0, 0);}, 8), 
   TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 4  ", 0, 0);}, 8), 
@@ -59,12 +60,17 @@ TeensyMenuItem settingMenuItems[NUM_SETTINGS_MENU_ITEMS] = {
   }, 8), 
 };
 
+TFTPianoDisplay pianoDisplay1(settingMenuItems[0], 3, 2, 0, 0); //tft, byte octaves, byte startOctave, byte x, byte y
+void DrawSettingsMenuItem0(View *v) {
+  pianoDisplay1.drawFullPiano();
+}
+
 Scene settingsScene = Scene(
                         _bmp_settings_on, 
                         _bmp_settings_off, 
                         16, 16, 
-                        [] { settingsMenu.Update(); }, 
-                        [] { Display.fillScreen(ST7735_BLUE); settingsMenu.NeedsUpdate = true; },
+                        [] { settingsMenu.Update(); pianoDisplay1.drawPiano();}, 
+                        [] { Display.fillScreen(ST7735_BLUE); settingsMenu.NeedsUpdate = true; pianoDisplay1.displayNeedsUpdating();},
                         [] {} , // std::function<void()> buttonPressed = nullptr, 
                         [] (bool forward) { if (forward) settingsMenu.IncreaseSelectedIndex(); else settingsMenu.DecreaseSelectedIndex(); }, //std::function<void(bool)> rotary1Changed = nullptr, 
                         [] (bool forward) { } //std::function<void(bool)> rotary2Changed = nullptr

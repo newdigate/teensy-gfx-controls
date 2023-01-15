@@ -46,6 +46,9 @@ include_directories(${teensy_st7735_linux_extras_opengl_INCLUDE_DIR})
 find_package(teensy_gfx)
 include_directories(${teensy_gfx_INCLUDE_DIR})
 
+find_package(arduino_tftpianoview)
+include_directories(${arduino_tftpianoview_INCLUDE_DIR})
+
 include_directories(../../src)
 
 add_definitions(-fms-extensions)
