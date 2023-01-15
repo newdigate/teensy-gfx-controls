@@ -14,7 +14,9 @@ public:
             std::function<void()> initScreen = nullptr, 
             std::function<void()> buttonPressed = nullptr, 
             std::function<void(bool)> rotary1Changed = nullptr, 
-            std::function<void(bool)> rotary2Changed = nullptr) : 
+            std::function<void(bool)> rotary2Changed = nullptr,
+            std::function<bool(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity)> handleNoteOnOff = nullptr,
+            std::function<bool(uint8_t channel, uint8_t data1, uint8_t data2)> handleControlChange = nullptr) : 
         _iconWidth(iconWidth),
         _iconHeight(iconHeight),
         _iconOn(iconOn), 
@@ -23,7 +25,9 @@ public:
         f_initScreen(initScreen),
         f_buttonPressed(buttonPressed),
         f_rotary1Changed(rotary1Changed),
-        f_rotary2Changed(rotary2Changed)
+        f_rotary2Changed(rotary2Changed),
+        f_handleNoteOnOff(handleNoteOnOff),
+        f_handleControlChange(handleControlChange)
     {
     }
 
@@ -83,6 +87,20 @@ public:
         }
     }
 
+    bool MidiNoteUpDown(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) {
+        if (f_handleNoteOnOff != nullptr) {
+            return f_handleNoteOnOff(noteDown, channel, pitch, velocity);
+        }
+        return false;
+    }
+
+    bool MidiControlChange(uint8_t channel, uint8_t data1, uint8_t data2) {
+        if (f_handleControlChange != nullptr) {
+            return f_handleControlChange(channel, data1, data2);
+        }
+        return false;
+    }
+
 private:
     unsigned int _iconWidth;
     unsigned int _iconHeight;
@@ -93,6 +111,9 @@ private:
     std::function<void()> f_buttonPressed = nullptr;
     std::function<void(bool)> f_rotary1Changed = nullptr;
     std::function<void(bool)> f_rotary2Changed = nullptr;
+
+    std::function<bool(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity)> f_handleNoteOnOff = nullptr;
+    std::function<bool(uint8_t channel, uint8_t data1, uint8_t data2)> f_handleControlChange = nullptr;
 
     const uint16_t * _iconOn;
     const uint16_t * _iconOff;
@@ -164,6 +185,20 @@ public:
         for (int i=0; i < iconWidth; i++)
             for (int j=0; j < iconHeight; j++)
                 DrawPixel(x+i, y+j, icon[i + (j * iconWidth)]);
+    }
+
+    bool MidiNoteUpDown(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) {
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return false;
+
+        return _scenes[_currentScene]->MidiNoteUpDown(noteDown, channel, pitch, velocity);
+    }
+
+    bool MidiControlChange(uint8_t channel, uint8_t data1, uint8_t data2) {
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return false;
+
+        return _scenes[_currentScene]->MidiControlChange(channel, data1, data2);
     }
 protected:
     bool _active = false;
