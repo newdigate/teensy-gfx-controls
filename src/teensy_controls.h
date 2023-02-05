@@ -28,6 +28,17 @@ public:
         }
     }
 
+    virtual void ValueScroll(bool forward) { 
+    }
+    
+    virtual bool MidiNoteEvent(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) { 
+        return false;
+    }
+
+    virtual bool MidiCCEvent(uint8_t channel, uint8_t data1, uint8_t data2) {
+        return false;
+    }
+
 protected:
     std::function<void()> f_update = nullptr;
     std::vector<TeensyControl *> _children;
@@ -208,6 +219,30 @@ public:
             }
         }
     }
+    
+    void ValueScroll(bool forward) override { 
+        if (_selectedIndex < 0 || _selectedIndex > _children.size() -1)
+            return;
+        
+        _children[_selectedIndex]->ValueScroll(forward);
+        NeedsUpdate = true;
+    }
+
+    bool MidiNoteEvent(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) override { 
+        if (_selectedIndex < 0 || _selectedIndex > _children.size() -1)
+            return false;
+        bool result = _children[_selectedIndex]->MidiNoteEvent(noteDown, channel, pitch, velocity);
+        NeedsUpdate = true;   
+        return result;
+    }
+
+    bool MidiCCEvent(uint8_t channel, uint8_t data1, uint8_t data2) override {
+        if (_selectedIndex < 0 || _selectedIndex > _children.size() -1)
+            return false;
+        bool result = _children[_selectedIndex]->MidiCCEvent(channel, data1, data2);
+        NeedsUpdate = true;   
+        return result;
+    }
 
     bool NeedsUpdate = true;
      
@@ -221,11 +256,21 @@ protected:
 
 class TeensyMenuItem : public TeensyControl {
 public:
-    TeensyMenuItem(View &view, std::function<void(View*)> updateWithView, unsigned int height) : 
+    TeensyMenuItem(
+            View &view, 
+            std::function<void(View*)> updateWithView, 
+            unsigned int height, 
+            std::function<void(bool forward)> menuValueScroll = nullptr,
+            std::function<bool(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity)> menuMidiNoteEvent = nullptr,
+            std::function<bool(uint8_t channel, uint8_t data1, uint8_t data2)> menuMidiCCEvent = nullptr
+        ) : 
         TeensyControl (view, std::bind(&TeensyMenuItem::MenuItemUpdate, this), 128, height, 0, 0),
-        _updateWithView(updateWithView)
-        {
-        }
+        _updateWithView(updateWithView),
+        _menuValueScroll(menuValueScroll),
+        _menuMidiNoteEvent(menuMidiNoteEvent),
+        _menuMidiCCEvent(menuMidiCCEvent)
+    {
+    }
 
     virtual ~TeensyMenuItem() {
     }
@@ -235,9 +280,32 @@ public:
             _updateWithView(this);
         }
     }
+    
+    virtual void ValueScroll(bool forward) override { 
+        if (_menuValueScroll != nullptr) {
+            _menuValueScroll(forward);
+        }
+    }
+
+    bool MidiNoteEvent(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) override {
+        if (_menuMidiNoteEvent != nullptr) {
+            return _menuMidiNoteEvent(noteDown, channel, pitch, velocity);
+        }
+        return false;
+    }
+
+    bool MidiCCEvent(uint8_t channel, uint8_t data1, uint8_t data2) override {
+        if (_menuMidiCCEvent != nullptr) {
+            return _menuMidiCCEvent(channel, data1, data2);
+        }
+        return false;
+    }
 
 private:
     std::function<void(View*)> _updateWithView;
+    std::function<void(bool forward)> _menuValueScroll;
+    std::function<bool(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity)> _menuMidiNoteEvent;
+    std::function<bool(uint8_t channel, uint8_t data1, uint8_t data2)> _menuMidiCCEvent;
 };
 
 class TeensyMenuController {
