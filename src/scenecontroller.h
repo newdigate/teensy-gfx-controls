@@ -3,7 +3,45 @@
 #include <queue>
 #include <functional>
 
-class Scene {
+class BaseScene {
+public:
+    BaseScene(
+            const uint16_t * iconOn, 
+            const uint16_t * iconOff, 
+            unsigned int iconWidth, 
+            unsigned int iconHeight) :
+        _iconWidth(iconWidth),
+        _iconHeight(iconHeight),
+        _iconOn(iconOn), 
+        _iconOff(iconOff)
+    {
+    }
+
+    virtual ~BaseScene() {
+    }
+
+    virtual void Update() {}
+    virtual void InitScreen () {}
+    virtual void ButtonPressed() {}
+    virtual void Rotary1Changed(bool forward) {}
+    virtual void Rotary2Changed(bool forward) {}
+    virtual bool HandleNoteOnOff(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) { return false; }
+    virtual bool HandleControlChange(uint8_t channel, uint8_t data1, uint8_t data2) { return false; }
+
+    const uint16_t * GetIcon(bool on) {
+        return (on)? _iconOn : _iconOff;
+    }
+    unsigned int GetIconWidth() { return _iconWidth; }
+    unsigned int GetIconHeight() { return _iconHeight; }
+
+protected:
+    unsigned int _iconWidth;
+    unsigned int _iconHeight;
+    const uint16_t * _iconOn;
+    const uint16_t * _iconOff;
+};
+
+class Scene : public BaseScene {
 public:
     Scene(
             const uint16_t * iconOn, 
@@ -16,11 +54,8 @@ public:
             std::function<void(bool)> rotary1Changed = nullptr, 
             std::function<void(bool)> rotary2Changed = nullptr,
             std::function<bool(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity)> handleNoteOnOff = nullptr,
-            std::function<bool(uint8_t channel, uint8_t data1, uint8_t data2)> handleControlChange = nullptr) : 
-        _iconWidth(iconWidth),
-        _iconHeight(iconHeight),
-        _iconOn(iconOn), 
-        _iconOff(iconOff),
+            std::function<bool(uint8_t channel, uint8_t data1, uint8_t data2)> handleControlChange = nullptr) 
+        : BaseScene(iconOn, iconOff, iconWidth, iconHeight),
         f_update(update),
         f_initScreen(initScreen),
         f_buttonPressed(buttonPressed),
@@ -33,12 +68,6 @@ public:
 
     virtual ~Scene() {
     }
-
-    const uint16_t * GetIcon(bool on) {
-        return (on)? _iconOn : _iconOff;
-    }
-    unsigned int GetIconWidth() { return _iconWidth; }
-    unsigned int GetIconHeight() { return _iconHeight; }
 
     void SetUpdateFunction(std::function<void()> updateFn) {
         f_update = updateFn;
@@ -56,45 +85,44 @@ public:
         f_rotary2Changed = rotaryChangedFn;
     }
 
-    void Update() {
+    void Update() override {
         if (f_update != nullptr) {
             f_update();
         }
     }
 
-    void InitScreen() {
+    void InitScreen() override {
         if (f_initScreen != nullptr) {
             f_initScreen();
         }
     }
 
-
-    void ButtonPressed() {
+    void ButtonPressed() override {
         if (f_buttonPressed != nullptr) {
             f_buttonPressed();
         }
     }
 
-    void Rotary1Changed(bool forward) {
+    void Rotary1Changed(bool forward) override {
         if (f_rotary1Changed != nullptr) {
             f_rotary1Changed(forward);
         }
     }
 
-    void Rotary2Changed(bool forward) {
+    void Rotary2Changed(bool forward) override {
         if (f_rotary2Changed != nullptr) {
             f_rotary2Changed(forward);
         }
     }
 
-    bool MidiNoteUpDown(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) {
+    bool HandleNoteOnOff(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) override {
         if (f_handleNoteOnOff != nullptr) {
             return f_handleNoteOnOff(noteDown, channel, pitch, velocity);
         }
         return false;
     }
 
-    bool MidiControlChange(uint8_t channel, uint8_t data1, uint8_t data2) {
+    bool HandleControlChange(uint8_t channel, uint8_t data1, uint8_t data2) override {
         if (f_handleControlChange != nullptr) {
             return f_handleControlChange(channel, data1, data2);
         }
@@ -102,9 +130,6 @@ public:
     }
 
 private:
-    unsigned int _iconWidth;
-    unsigned int _iconHeight;
-
     std::function<void()> f_update = nullptr;
     std::function<void()> f_initScreen = nullptr;
 
@@ -114,9 +139,6 @@ private:
 
     std::function<bool(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity)> f_handleNoteOnOff = nullptr;
     std::function<bool(uint8_t channel, uint8_t data1, uint8_t data2)> f_handleControlChange = nullptr;
-
-    const uint16_t * _iconOn;
-    const uint16_t * _iconOff;
 };
 
 class BaseSceneController {
@@ -177,7 +199,7 @@ public:
         }
     }
 
-    void AddScene(Scene *scene){
+    void AddScene(BaseScene *scene){
         _scenes.push_back(scene);
     }
     
@@ -191,18 +213,18 @@ public:
         if (_currentScene < 0 || _currentScene >= _scenes.size())
             return false;
 
-        return _scenes[_currentScene]->MidiNoteUpDown(noteDown, channel, pitch, velocity);
+        return _scenes[_currentScene]->HandleNoteOnOff(noteDown, channel, pitch, velocity);
     }
 
     bool MidiControlChange(uint8_t channel, uint8_t data1, uint8_t data2) {
         if (_currentScene < 0 || _currentScene >= _scenes.size())
             return false;
 
-        return _scenes[_currentScene]->MidiControlChange(channel, data1, data2);
+        return _scenes[_currentScene]->HandleControlChange(channel, data1, data2);
     }
 protected:
     bool _active = false;
-    std::vector< Scene* > _scenes;
+    std::vector< BaseScene* > _scenes;
     int _currentScene = -1;
 };
 

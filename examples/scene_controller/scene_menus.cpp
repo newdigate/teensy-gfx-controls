@@ -65,7 +65,7 @@ void DrawSettingsMenuItem0(View *v) {
   pianoDisplay1.drawFullPiano();
 }
 
-Scene settingsScene = Scene(
+Scene *settingsScene = new Scene(
                         _bmp_settings_on, 
                         _bmp_settings_off, 
                         16, 16, 
@@ -76,14 +76,14 @@ Scene settingsScene = Scene(
                         [] (bool forward) { } //std::function<void(bool)> rotary2Changed = nullptr
                         );
 
-Scene editScene = Scene(
+Scene *editScene = new Scene(
                         _bmp_edit_on, 
                         _bmp_edit_off, 
                         16, 16,
                         [] { }, 
                         [] { Display.fillScreen(ST7735_RED); });
 
-Scene playScene = Scene(
+Scene *playScene = new Scene(
                         _bmp_play_on, 
                         _bmp_play_off, 
                         16, 16,
@@ -117,9 +117,9 @@ void setup() {
 
   Display.fillScreen(ST7735_BLACK);
 
-  sceneController.AddScene(&settingsScene);
-  sceneController.AddScene(&editScene);
-  sceneController.AddScene(&playScene);
+  sceneController.AddScene(settingsScene);
+  sceneController.AddScene(editScene);
+  sceneController.AddScene(playScene);
 
   sceneController.SetCurrentSceneIndex(0);
   sceneController.SetActive(false);
