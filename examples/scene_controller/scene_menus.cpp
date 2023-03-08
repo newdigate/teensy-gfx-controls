@@ -69,9 +69,10 @@ Scene *settingsScene = new Scene(
                         _bmp_settings_on, 
                         _bmp_settings_off, 
                         16, 16, 
-                        [] { settingsMenu.Update(); pianoDisplay1.drawPiano();}, 
-                        [] { Display.fillScreen(ST7735_BLUE); settingsMenu.NeedsUpdate = true; pianoDisplay1.displayNeedsUpdating();},
-                        [] {} , // std::function<void()> buttonPressed = nullptr, 
+                        [] { settingsMenu.Update(); pianoDisplay1.drawPiano();},      //            std::function<void()> update = nullptr,  
+                        [] { Display.fillScreen(ST7735_BLUE); settingsMenu.NeedsUpdate = true; pianoDisplay1.displayNeedsUpdating(); },   //             std::function<void()> initScreen = nullptr, 
+                        [] { },   //             std::function<void()> uninitScreen = nullptr, 
+                        [] (unsigned index) { }, //             std::function<void(unsigned)> buttonPressed = nullptr, 
                         [] (bool forward) { if (forward) settingsMenu.IncreaseSelectedIndex(); else settingsMenu.DecreaseSelectedIndex(); }, //std::function<void(bool)> rotary1Changed = nullptr, 
                         [] (bool forward) { } //std::function<void(bool)> rotary2Changed = nullptr
                         );

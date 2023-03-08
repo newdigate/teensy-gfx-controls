@@ -22,7 +22,9 @@ public:
 
     virtual void Update() {}
     virtual void InitScreen () {}
-    virtual void ButtonPressed() {}
+    virtual void UninitScreen () {}
+
+    virtual void ButtonPressed(unsigned buttonIndex) {}
     virtual void Rotary1Changed(bool forward) {}
     virtual void Rotary2Changed(bool forward) {}
     virtual bool HandleNoteOnOff(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) { return false; }
@@ -50,7 +52,8 @@ public:
             unsigned int iconHeight, 
             std::function<void()> update = nullptr, 
             std::function<void()> initScreen = nullptr, 
-            std::function<void()> buttonPressed = nullptr, 
+            std::function<void()> uninitScreen = nullptr, 
+            std::function<void(unsigned)> buttonPressed = nullptr, 
             std::function<void(bool)> rotary1Changed = nullptr, 
             std::function<void(bool)> rotary2Changed = nullptr,
             std::function<bool(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity)> handleNoteOnOff = nullptr,
@@ -58,6 +61,7 @@ public:
         : BaseScene(iconOn, iconOff, iconWidth, iconHeight),
         f_update(update),
         f_initScreen(initScreen),
+        f_uninitScreen(uninitScreen),
         f_buttonPressed(buttonPressed),
         f_rotary1Changed(rotary1Changed),
         f_rotary2Changed(rotary2Changed),
@@ -73,7 +77,7 @@ public:
         f_update = updateFn;
     }
 
-    void SetButtonPressedFunction(std::function<void()> buttonPressedFn) {
+    void SetButtonPressedFunction(std::function<void(unsigned)> buttonPressedFn) {
         f_buttonPressed = buttonPressedFn;
     }
 
@@ -97,9 +101,16 @@ public:
         }
     }
 
-    void ButtonPressed() override {
+    void UninitScreen() override {
+        if (f_uninitScreen != nullptr) {
+            f_uninitScreen();
+        }
+    }
+
+
+    void ButtonPressed(unsigned index) override {
         if (f_buttonPressed != nullptr) {
-            f_buttonPressed();
+            f_buttonPressed(index);
         }
     }
 
@@ -132,8 +143,9 @@ public:
 private:
     std::function<void()> f_update = nullptr;
     std::function<void()> f_initScreen = nullptr;
+    std::function<void()> f_uninitScreen = nullptr;
 
-    std::function<void()> f_buttonPressed = nullptr;
+    std::function<void(unsigned)> f_buttonPressed = nullptr;
     std::function<void(bool)> f_rotary1Changed = nullptr;
     std::function<void(bool)> f_rotary2Changed = nullptr;
 
@@ -226,6 +238,7 @@ protected:
     bool _active = false;
     std::vector< BaseScene* > _scenes;
     int _currentScene = -1;
+    int _previousScene = -1;
 };
 
 template< typename TDisplay, typename TEncoder, typename TButton >
@@ -250,10 +263,19 @@ public:
             // button has been pressed...
             if (!_active) {
                 _active = true;
+                _previousScene = _currentScene;
                 DrawSceneMenu();
             } else {
                 _active = false;
-                _scenes[_currentScene]->InitScreen();
+                if (_previousScene != _currentScene) {
+                    if (_previousScene > -1) {
+                        Serial.print("UninitScreen:");
+                        Serial.println(_previousScene);
+                        _scenes[_currentScene]->UninitScreen(); 
+                    }
+
+                    _scenes[_currentScene]->InitScreen(); 
+                }
             }
             Serial.println(_active? "Open Menu" : "Close Menu");
             return;
