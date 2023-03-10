@@ -269,15 +269,15 @@ public:
                 _active = false;
                 if (_previousScene != _currentScene) {
                     if (_previousScene > -1) {
-                        Serial.print("UninitScreen:");
-                        Serial.println(_previousScene);
+                        //Serial.print("UninitScreen:");
+                        //Serial.println(_previousScene);
                         _scenes[_currentScene]->UninitScreen(); 
                     }
-
                     _scenes[_currentScene]->InitScreen(); 
-                }
+                } else
+                    _scenes[_currentScene]->Update(); 
             }
-            Serial.println(_active? "Open Menu" : "Close Menu");
+            //Serial.println(_active? "Open Menu" : "Close Menu");
             return;
         }
 
@@ -318,7 +318,7 @@ public:
             if (left | right) {
                 DrawSceneMenu();
                 _currentSceneNeedsInit = true;
-                Serial.println("_currentSceneNeedsInit = true");
+                //Serial.println("_currentSceneNeedsInit = true");
             }
         } else 
         {
@@ -328,7 +328,7 @@ public:
                 if (_currentSceneNeedsInit) {
                     _currentSceneNeedsInit = false;
                     _scenes[_currentScene]->InitScreen();
-                    Serial.println("Current scene: InitScreen");
+                    //Serial.println("Current scene: InitScreen");
                 }
 
                 // marshall the inputs to th current scene
