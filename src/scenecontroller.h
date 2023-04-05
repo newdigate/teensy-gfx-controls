@@ -244,12 +244,14 @@ protected:
 template< typename TDisplay, typename TEncoder, typename TButton >
 class SceneController : public BaseSceneController {
 public:
-    SceneController(TDisplay &display, TEncoder &encoderUpDown, TEncoder &encoderLeftRight, TButton &button) : 
+    SceneController(TDisplay &display, TEncoder &encoderUpDown, TEncoder &encoderLeftRight, TButton &button, TButton &button2, TButton &button3) : 
         BaseSceneController(),
         _display(display),
         _encoderUpDown(encoderUpDown),
         _encoderLeftRight(encoderLeftRight),
-        _button(button)
+        _button(button),
+        _button2(button2),
+        _button3(button3)
     {
     }
 
@@ -258,6 +260,8 @@ public:
 
     virtual void Process() override {
         _button.update();
+        _button2.update();
+        _button3.update();
 
         if (_button.changed() && !_button.fell()) {
             // button has been pressed...
@@ -279,6 +283,18 @@ public:
             }
             //Serial.println(_active? "Open Menu" : "Close Menu");
             return;
+        }
+
+        if (_button2.changed() && !_button2.fell()) {
+            if (_currentScene > -1) {
+                _scenes[_currentScene]->ButtonPressed(2); 
+            }
+        }
+
+        if (_button3.changed() && !_button3.fell()) {
+            if (_currentScene > -1) {
+                _scenes[_currentScene]->ButtonPressed(3); 
+            }
         }
 
         bool left = false, right = false, up = false, down = false;
@@ -359,6 +375,8 @@ public:
 protected:
     TDisplay &_display;
     TButton &_button;
+    TButton &_button2;
+    TButton &_button3;
     Encoder &_encoderUpDown;
     Encoder &_encoderLeftRight;
     bool _currentSceneNeedsInit = true;

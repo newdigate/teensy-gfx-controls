@@ -39,6 +39,9 @@ public:
         return false;
     }
 
+    virtual void ButtonDown(uint8_t buttonNumber) {
+    }
+
 protected:
     std::function<void()> f_update = nullptr;
     std::vector<TeensyControl *> _children;
@@ -244,6 +247,13 @@ public:
         return result;
     }
 
+    void ButtonDown(uint8_t buttonNumber) override {
+        if (_selectedIndex < 0 || _selectedIndex > _children.size() -1)
+            return;
+        _children[_selectedIndex]->ButtonDown(buttonNumber);
+        NeedsUpdate = true;   
+        return;
+    }
     bool NeedsUpdate = true;
      
 protected:
@@ -262,13 +272,15 @@ public:
             unsigned int height, 
             std::function<void(bool forward)> menuValueScroll = nullptr,
             std::function<bool(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity)> menuMidiNoteEvent = nullptr,
-            std::function<bool(uint8_t channel, uint8_t data1, uint8_t data2)> menuMidiCCEvent = nullptr
+            std::function<bool(uint8_t channel, uint8_t data1, uint8_t data2)> menuMidiCCEvent = nullptr,
+            std::function<void(uint8_t buttonNumber)> buttonDownEvent = nullptr
         ) : 
         TeensyControl (view, std::bind(&TeensyMenuItem::MenuItemUpdate, this), 128, height, 0, 0),
         _updateWithView(updateWithView),
         _menuValueScroll(menuValueScroll),
         _menuMidiNoteEvent(menuMidiNoteEvent),
-        _menuMidiCCEvent(menuMidiCCEvent)
+        _menuMidiCCEvent(menuMidiCCEvent),
+        _buttonDownEvent(buttonDownEvent)
     {
     }
 
@@ -301,11 +313,19 @@ public:
         return false;
     }
 
+    void ButtonDown(uint8_t buttonNumber) override {
+        if (_buttonDownEvent != nullptr) {
+            return _buttonDownEvent(buttonNumber);
+        } 
+    }
+
 private:
     std::function<void(View*)> _updateWithView;
     std::function<void(bool forward)> _menuValueScroll;
     std::function<bool(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity)> _menuMidiNoteEvent;
     std::function<bool(uint8_t channel, uint8_t data1, uint8_t data2)> _menuMidiCCEvent;
+    std::function<void(uint8_t buttonNumber)> _buttonDownEvent;
+
 };
 
 class TeensyMenuController {

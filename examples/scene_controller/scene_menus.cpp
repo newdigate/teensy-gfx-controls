@@ -24,11 +24,13 @@
 
 using namespace Bounce2;
 Button button = Button();
+Button button2 = Button();
+Button button3 = Button();
 Encoder encoderLeftRight;
 Encoder encoderUpDown;
 
 st7735_opengl<Encoder, Button> Display(true, 20, &encoderLeftRight, &encoderUpDown, &button);
-SceneController< st7735_opengl<Encoder, Button>, Encoder, Button> sceneController(Display, encoderLeftRight, encoderUpDown, button);
+SceneController< st7735_opengl<Encoder, Button>, Encoder, Button> sceneController(Display, encoderLeftRight, encoderUpDown, button, button2, button3);
 
 void DrawSettingsMenuItem0(View *v);
 
