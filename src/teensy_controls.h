@@ -1,11 +1,13 @@
 #ifndef TEENSY_CONTROLS_H
 #define TEENSY_CONTROLS_H
 #include <queue>
+#include <stack>
 #include <functional>
 #include <Encoder.h>
 #include "View.h"
 #include "VirtualView.h"
 #include "rect.h"
+#include <Bounce2.h>
 
 class TeensyControl : public VirtualView {
 public:
@@ -19,7 +21,7 @@ public:
     virtual ~TeensyControl() {
     }
 
-    void Update() {
+    virtual void Update() {
         if (f_update != nullptr) {
             f_update();
         }
@@ -42,6 +44,12 @@ public:
     virtual void ButtonDown(uint8_t buttonNumber) {
     }
 
+    virtual void IncreaseSelectedIndex() {
+    }
+
+    virtual void DecreaseSelectedIndex() {
+    }
+
 protected:
     std::function<void()> f_update = nullptr;
     std::vector<TeensyControl *> _children;
@@ -50,11 +58,14 @@ protected:
 template< typename TDisplay >
 class ViewController {
 public:
-    ViewController(TDisplay &display, Encoder &encoderUpDown, Encoder &encoderLeftRight) : 
+    ViewController(TDisplay &display, Encoder &encoderUpDown, Encoder &encoderLeftRight, Bounce2::Button *button = nullptr, std::function< void() > fnButtonPressed = nullptr) : 
         _display(display),
         _controls(),
+        _dialogs(),
         _encoderUpDown(encoderUpDown),
-        _encoderLeftRight(encoderLeftRight)
+        _encoderLeftRight(encoderLeftRight),
+        _button(button),
+        _fnButtonPressed(fnButtonPressed)
     {
     }
 
@@ -72,6 +83,10 @@ public:
     }
 
     void Refresh() {
+        if (_dialogs.size() > 0){
+            _dialogs.top()->Update();
+            return;
+        }
         if (!_needsRefresh) 
             return;
         for (auto && ctrl : _controls) {
@@ -85,8 +100,9 @@ public:
         Refresh();
     }
 
-    void Process() {
-        
+    void Process() 
+    {
+        {
             bool left = false, right = false, up = false, down = false;
 
             Position = _encoderLeftRight.read();
@@ -114,15 +130,25 @@ public:
             } 
 
             if (left) {
-                 _display.XOffsetDelta(- 2);
+                    _display.XOffsetDelta(- 2);
                 _needsRefresh = true;
             } else if (right) {
-                 _display.XOffsetDelta( 2);
+                    _display.XOffsetDelta( 2);
                 _needsRefresh = true;
             } 
             
             oldPosition = Position;
             oldPositionY = PositionY;
+        }
+        
+        if (_button != nullptr && _fnButtonPressed != nullptr) {
+            _button->update();
+
+            if (_button->changed() && !_button->fell()) {
+                // button has been pressed...
+                _fnButtonPressed();
+            }
+        }
     }
 
     void AddControl(TeensyControl *control){
@@ -130,12 +156,18 @@ public:
         _totalHeight += control->height();
     }
 
+    void AddDialog(TeensyControl *control){
+        _dialogs.push(control);
+    }
+
 protected:
     TDisplay &_display;
     bool _active = false;
     bool _needsRefresh = true;
     std::vector< TeensyControl* > _controls;
+    std::stack< TeensyControl* > _dialogs;
     int _selectedControl = -1;
+    std::function< void() > _fnButtonPressed;
 
     //signed short _xOffset = 0;
     //signed short _yOffset = 0;
@@ -144,7 +176,7 @@ protected:
     
     Encoder &_encoderUpDown;
     Encoder &_encoderLeftRight;
-    
+    Bounce2::Button *_button;
     // encoder stuff
     long Position = 0, oldPosition = 0;
     long PositionY = 0, oldPositionY = 0;
@@ -154,26 +186,42 @@ protected:
 class TeensyMenu : public TeensyControl {
 public:
     TeensyMenu(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y, uint16_t colorMenuItemBackground, uint16_t colorMenuItemBackgroundSelected) : 
-        TeensyControl (view, nullptr, x, y, width, height),
+        TeensyControl(
+            view, 
+            nullptr,//std::bind(& TeensyMenu:: DrawBackground, this),
+            x, y, width, height),
         _colorMenuItemBackground(colorMenuItemBackground),
         _colorMenuItemBackgroundSelected(colorMenuItemBackgroundSelected)
         {
+            _instance = __instanceCount;
+            TeensyMenu::__instanceCount++;
+            Serial.printf("%d: TeensyMenu() \n", _instance);
+
         }
 
     virtual ~TeensyMenu() {
     }
 
-    virtual void Update() {
+    void DrawBackground() {
         if (NeedsUpdate) {
-            //fillRect(0, 0, _width, _height, _colorMenuItemBackground);
+            Serial.printf("%d: DrawBackground()\n", _instance);
             _display.fillRect(_left, _top, _width, _height, _colorMenuItemBackground);
 
             if (_selectedIndex > -1 && _selectedIndex < _children.size() ) {
                 fillRect(0, _children[_selectedIndex]->Top(), _width, _children[_selectedIndex]->Height(), _colorMenuItemBackgroundSelected);
             }
+        }
+    }
+
+    void Update() override {
+        if (NeedsUpdate) {
+            Serial.printf("%d: Update()\n", _instance);
+            //fillRect(0, 0, _width, _height, _colorMenuItemBackground);
+            DrawBackground();
             TeensyControl::Update();
             NeedsUpdate = false;
         }
+        TeensyControl::Update();
     }
 
     void AddControl(TeensyControl *control) {
@@ -182,14 +230,18 @@ public:
         _children.push_back(control);
     }
 
-    void IncreaseSelectedIndex() {
+    void IncreaseSelectedIndex() override {
+        Serial.printf("%d: DecreaseSelectedIndex() \n", _instance);
+
         if (_selectedIndex < _children.size() -1) {
             _selectedIndex++;
             NeedsUpdate = true;
             ScrollIfNeeded();
         }
     }
-    void DecreaseSelectedIndex() {
+    void DecreaseSelectedIndex() override {
+        Serial.printf("%d: DecreaseSelectedIndex() \n", _instance);
+
         if (_selectedIndex > 0 ) {
             _selectedIndex--;
             NeedsUpdate = true;
@@ -224,7 +276,7 @@ public:
     }
     
     void ValueScroll(bool forward) override { 
-        if (_selectedIndex < 0 || _selectedIndex > _children.size() -1)
+        if (_selectedIndex < 0 || _selectedIndex > _children.size() -1 || _children.size() < 1)
             return;
         
         _children[_selectedIndex]->ValueScroll(forward);
@@ -232,7 +284,7 @@ public:
     }
 
     bool MidiNoteEvent(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) override { 
-        if (_selectedIndex < 0 || _selectedIndex > _children.size() -1)
+        if (_selectedIndex < 0 || _selectedIndex > _children.size() -1 || _children.size() < 1)
             return false;
         bool result = _children[_selectedIndex]->MidiNoteEvent(noteDown, channel, pitch, velocity);
         NeedsUpdate = true;   
@@ -240,7 +292,7 @@ public:
     }
 
     bool MidiCCEvent(uint8_t channel, uint8_t data1, uint8_t data2) override {
-        if (_selectedIndex < 0 || _selectedIndex > _children.size() -1)
+        if (_selectedIndex < 0 || _selectedIndex > _children.size() -1 || _children.size() < 1)
             return false;
         bool result = _children[_selectedIndex]->MidiCCEvent(channel, data1, data2);
         NeedsUpdate = true;   
@@ -248,7 +300,8 @@ public:
     }
 
     void ButtonDown(uint8_t buttonNumber) override {
-        if (_selectedIndex < 0 || _selectedIndex > _children.size() -1)
+        Serial.printf("%d: ButtonDown(%d) \r\n", _instance, buttonNumber);
+        if (_selectedIndex < 0 || _selectedIndex > _children.size() -1 || _children.size() < 1)
             return;
         _children[_selectedIndex]->ButtonDown(buttonNumber);
         NeedsUpdate = true;   
@@ -262,7 +315,11 @@ protected:
     uint16_t _colorMenuItemBackground;
     uint16_t _colorMenuItemBackgroundSelected;
 
+    uint _instance;
+    static uint __instanceCount;
 };
+
+uint TeensyMenu::__instanceCount = 0;
 
 class TeensyMenuItem : public TeensyControl {
 public:

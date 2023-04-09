@@ -29,8 +29,40 @@ Button button3 = Button();
 Encoder encoderLeftRight;
 Encoder encoderUpDown;
 
-st7735_opengl<Encoder, Button> Display(true, 20, &encoderLeftRight, &encoderUpDown, &button);
-SceneController< st7735_opengl<Encoder, Button>, Encoder, Button> sceneController(Display, encoderLeftRight, encoderUpDown, button, button2, button3);
+typedef SceneController< st7735_opengl<Encoder, Button>, Encoder, Button> MySceneController;
+
+st7735_opengl<Encoder, Button> Display(true, 20, &encoderLeftRight, &encoderUpDown, &button, &button2, &button3);
+MySceneController sceneController(Display, encoderLeftRight, encoderUpDown, button, button2, button3);
+
+void hideDialog(int buttonIndex);
+
+#define NUM_DIALOG_MENU_ITEMS 3
+TeensyMenu *dialogMenu = new TeensyMenu(Display, 20, 20, 88, 88, ST7735_GREEN, ST7735_BLACK);
+TeensyMenuItem dialogMenuItems[NUM_DIALOG_MENU_ITEMS] = {
+  TeensyMenuItem(*dialogMenu, [] (View *v) {v->drawString("Option 1", 0, 0);}, 8), 
+  TeensyMenuItem(*dialogMenu, [] (View *v) {v->drawString("Option 2", 0, 0);}, 8), 
+  TeensyMenuItem(*dialogMenu, [] (View *v) {v->drawString("close", 0, 0);}, 8, nullptr, nullptr, nullptr, hideDialog)
+};
+
+bool showingDialog = false;
+void showDialog(int buttonIndex) {
+    if (showingDialog == false) {
+      showingDialog = true;
+
+      Serial.printf("showDialog() \n");
+
+      dialogMenu->NeedsUpdate = true;
+      sceneController.AddDialog(dialogMenu);
+    }
+}
+
+void hideDialog(int buttonIndex) {
+  if (showingDialog) {
+     Serial.printf("hideDialog() \n");
+    sceneController.PopDialog();
+    showingDialog = false;
+  }
+}
 
 void DrawSettingsMenuItem0(View *v);
 
@@ -38,7 +70,13 @@ void DrawSettingsMenuItem0(View *v);
 TeensyMenu settingsMenu = TeensyMenu( Display, 10, 10, 108, 108, ST7735_BLUE, ST7735_BLACK );
 TeensyMenuItem settingMenuItems[NUM_SETTINGS_MENU_ITEMS] = {
   TeensyMenuItem(settingsMenu, DrawSettingsMenuItem0, 16),
-  TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 2  ", 0, 0);}, 8),
+  TeensyMenuItem(settingsMenu, 
+    [] (View *v) {v->drawString("Dialog", 0, 0);}, 
+    8, 
+    nullptr,//   std::function<void(bool forward)> menuValueScroll =
+    nullptr,//    std::function<bool(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity)> menuMidiNoteEvent = ,
+    nullptr,//     std::function<bool(uint8_t channel, uint8_t data1, uint8_t data2)> menuMidiCCEvent = ,
+    showDialog),
   TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 3  ", 0, 0);}, 8), 
   TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 4  ", 0, 0);}, 8), 
   TeensyMenuItem(settingsMenu, [] (View *v) {v->drawString("Menu 5  ", 0, 0);}, 8),
@@ -71,11 +109,19 @@ Scene *settingsScene = new Scene(
                         _bmp_settings_on, 
                         _bmp_settings_off, 
                         16, 16, 
-                        [] { settingsMenu.Update(); pianoDisplay1.drawPiano();},      //            std::function<void()> update = nullptr,  
+                        [] { 
+                              settingsMenu.Update(); 
+                              pianoDisplay1.drawPiano();
+                        },      //            std::function<void()> update = nullptr,  
                         [] { Display.fillScreen(ST7735_BLUE); settingsMenu.NeedsUpdate = true; pianoDisplay1.displayNeedsUpdating(); },   //             std::function<void()> initScreen = nullptr, 
                         [] { },   //             std::function<void()> uninitScreen = nullptr, 
-                        [] (unsigned index) { }, //             std::function<void(unsigned)> buttonPressed = nullptr, 
-                        [] (bool forward) { if (forward) settingsMenu.IncreaseSelectedIndex(); else settingsMenu.DecreaseSelectedIndex(); }, //std::function<void(bool)> rotary1Changed = nullptr, 
+                        [] (unsigned index) { 
+                            settingsMenu.ButtonDown(index);
+                        }, //             std::function<void(unsigned)> buttonPressed = nullptr, 
+                        [] (bool forward) { 
+                            if (forward) settingsMenu.IncreaseSelectedIndex(); 
+                            else settingsMenu.DecreaseSelectedIndex(); 
+                        }, //std::function<void(bool)> rotary1Changed = nullptr, 
                         [] (bool forward) { } //std::function<void(bool)> rotary2Changed = nullptr
                         );
 
@@ -106,13 +152,20 @@ void setup() {
   //pinMode(LED_PIN, OUTPUT);
 
   button.attach( 10, 10 ); // USE EXTERNAL PULL-UP
+  button2.attach( 11, 11 ); // USE EXTERNAL PULL-UP
+  button3.attach( 12, 12 ); // USE EXTERNAL PULL-UP
+
 
   // DEBOUNCE INTERVAL IN MILLISECONDS
   button.interval(5); 
+  button2.interval(5); 
+  button3.interval(5); 
+
 
   // INDICATE THAT THE LOW STATE CORRESPONDS TO PHYSICALLY PRESSING THE BUTTON
   button.setPressedState(LOW); 
-  
+  button2.setPressedState(LOW); 
+  button3.setPressedState(LOW); 
 
   delay(10);
   //Display.initR(INITR_GREENTAB);
@@ -133,6 +186,10 @@ void setup() {
 
   for (int i = 0; i < NUM_SETTINGS_MENU_ITEMS; i++) {
     settingsMenu.AddControl(&settingMenuItems[i]);
+  }
+
+  for (int i = 0; i < NUM_DIALOG_MENU_ITEMS; i++) {
+    dialogMenu->AddControl(&dialogMenuItems[i]);
   }
 }
 

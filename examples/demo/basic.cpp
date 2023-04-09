@@ -21,8 +21,22 @@ Encoder encoderUpDown;
 st7735_opengl<Encoder, Bounce2::Button> Display(true, 20, &encoderLeftRight, &encoderUpDown, &button);
 
 VirtualView framebuffer = VirtualView(Display, 10, 10, 108, 108);
-ViewController< VirtualView > viewController(framebuffer, encoderUpDown, encoderLeftRight);
+/*
+    TeensyControl(View &view, std::function<void()> updateFn, unsigned int width, unsigned int height, unsigned int x, unsigned int y) : 
+*/
+void buttonDown();
 
+ViewController< VirtualView > viewController(framebuffer, encoderUpDown, encoderLeftRight, &button, buttonDown);
+
+TeensyControl *control = 
+    new TeensyControl(
+        Display, 
+        [] () {  Display.fillRect(20, 20, 60, 60, ST7735_WHITE);}, 
+        60, 60, 20, 20);
+
+void buttonDown() {
+    viewController.AddDialog(control);
+}
 
 #define FONT_TITLE Arial_16
 #define FONT_DATA ComicSansMS_10
@@ -87,7 +101,8 @@ void setup() {
 float f = 0;
 
 void loop() {
-    //delay(1);
+    delay(1);
+
 
     f += 0.0001;
     int16_t scrollY = round(50.0 * sin(f));
@@ -104,6 +119,8 @@ void loop() {
     // update the dials
     Bits.draw(bBits);
     Volts.draw(bVolts);
+    viewController.Update();
+
 }
 
 

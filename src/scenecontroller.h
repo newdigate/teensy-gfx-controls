@@ -1,7 +1,9 @@
 #ifndef TEENSY_SCENE_CONTROLLER_SCENECONTROLLER_H
 #define TEENSY_SCENE_CONTROLLER_SCENECONTROLLER_H
 #include <queue>
+#include <stack>
 #include <functional>
+#include "teensy_controls.h"
 
 class BaseScene {
 public:
@@ -286,12 +288,18 @@ public:
         }
 
         if (_button2.changed() && !_button2.fell()) {
+            if (_dialogs.size() > 0){
+                _dialogs.top()->ButtonDown(2);
+            } else 
             if (_currentScene > -1) {
                 _scenes[_currentScene]->ButtonPressed(2); 
             }
         }
 
         if (_button3.changed() && !_button3.fell()) {
+            if (_dialogs.size() > 0){
+                _dialogs.top()->ButtonDown(3);
+            } else 
             if (_currentScene > -1) {
                 _scenes[_currentScene]->ButtonPressed(3); 
             }
@@ -339,6 +347,21 @@ public:
         } else 
         {
             // the scene menu is hidden and we are rending the current scene
+            if (_dialogs.size() > 0) {
+                if (up) {
+                    _dialogs.top()->IncreaseSelectedIndex();
+                } else if (down) {
+                    _dialogs.top()->DecreaseSelectedIndex();
+                }
+
+                if (left) {
+                    _dialogs.top()->ValueScroll(true);
+                } else if (right) {
+                    _dialogs.top()->ValueScroll(false);
+                }
+       
+                _dialogs.top()->Update();
+            } else 
             if (_currentScene > -1) {
 
                 if (_currentSceneNeedsInit) {
@@ -358,9 +381,10 @@ public:
                     _scenes[_currentScene]->Rotary2Changed(false);
                 } else if (right) {
                     _scenes[_currentScene]->Rotary2Changed(true);
-                }              
+                }      
+
+                Update();
             }
-            Update();
         }
     }
 
@@ -372,6 +396,16 @@ public:
         _display.Pixel(x, y, color);
     };
 
+    void AddDialog(TeensyControl *control){
+        _dialogs.push(control);
+    }
+
+    void PopDialog() {
+        if (_dialogs.size() > 0) {
+            _dialogs.pop();
+        }
+    }
+
 protected:
     TDisplay &_display;
     TButton &_button;
@@ -380,7 +414,7 @@ protected:
     Encoder &_encoderUpDown;
     Encoder &_encoderLeftRight;
     bool _currentSceneNeedsInit = true;
-    
+    std::stack< TeensyControl* > _dialogs;
     // encoder stuff
     long Position = 0, oldPosition = 0;
     long PositionY = 0, oldPositionY = 0;
