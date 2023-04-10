@@ -33,32 +33,15 @@ jobs:
 
     - uses: actions/checkout@v2
       with:
-        repository: newdigate/teensy-variable-playback
-        path: deps/teensy-variable-playback
-
-    - uses: actions/checkout@v2
-      with:
-        repository: PaulStoffregen/Audio.git
-        path: deps/Audio
+        repository: PaulStoffregen/SPI.git
+        path: deps/SPI
+        fetch-depth: 1
         ref: master
 
     - uses: actions/checkout@v2
       with:
-        repository: PaulStoffregen/SerialFlash
-        path: deps/SerialFlash
-        ref: master
-
-    - uses: actions/checkout@v2
-      with:
-        repository: PaulStoffregen/USBHost_t36
-        path: deps/USBHost_t36
-        ref: master
-
-    - uses: actions/checkout@v2
-      with:
-        repository: PaulStoffregen/ST7735_t3
-        path: deps/ST7735_t3
-        ref: master
+        repository: newdigate/teensy-gfx
+        path: teensy-gfx
 
     - uses: actions/checkout@v2
       with:
@@ -82,22 +65,8 @@ jobs:
 
     - uses: actions/checkout@v2
       with:
-        repository: greiman/SdFat.git
-        path: deps/SdFat
-        fetch-depth: 1
-        ref: master
-
-    - uses: actions/checkout@v2
-      with:
-        repository: PaulStoffregen/SPI.git
-        path: deps/SPI
-        fetch-depth: 1
-        ref: master
-
-    - uses: actions/checkout@v2
-      with:
-        repository: PaulStoffregen/MIDI.git
-        path: deps/MIDI
+        repository: PaulStoffregen/SdFat.git
+        path: deps/SdFat_PaulStoffregen
         fetch-depth: 1
         ref: master
 
