@@ -41,7 +41,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         repository: newdigate/teensy-gfx
-        path: teensy-gfx
+        path: deps/teensy-gfx
 
     - uses: actions/checkout@v2
       with:
