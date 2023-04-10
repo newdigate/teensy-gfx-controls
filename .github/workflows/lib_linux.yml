@@ -41,6 +41,11 @@ jobs:
 
       - uses: actions/checkout@v2
         with:
+          repository: newdigate/teensy-gfx
+          path: teensy-gfx
+
+      - uses: actions/checkout@v2
+        with:
           repository: newdigate/teensy-st7735-linux-stubs
           path: teensy-st7735-linux-stubs
 
@@ -61,6 +66,9 @@ jobs:
   
       - name: Make and Install teensy-audio-x86-stubs
         run:  cd teensy-audio-x86-stubs && mkdir cmake-build-$BUILD_TYPE && cd cmake-build-$BUILD_TYPE && cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && sudo make install
+
+      - name: Make and Install teensy-gfx
+        run:  cd teensy-gfx && mkdir cmake-build-$BUILD_TYPE && cd cmake-build-$BUILD_TYPE && cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && sudo make install
 
       - name: Make and Install teensy-st7735-linux-stubs
         run:  cd teensy-st7735-linux-stubs && mkdir cmake-build-$BUILD_TYPE && cd cmake-build-$BUILD_TYPE && cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE .. && sudo make install
