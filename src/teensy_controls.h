@@ -189,7 +189,7 @@ public:
         TeensyControl(
             view, 
             nullptr,//std::bind(& TeensyMenu:: DrawBackground, this),
-            x, y, width, height),
+            width, height, x, y),
         _colorMenuItemBackground(colorMenuItemBackground),
         _colorMenuItemBackgroundSelected(colorMenuItemBackgroundSelected)
         {

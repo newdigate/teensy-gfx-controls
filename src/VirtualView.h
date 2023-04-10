@@ -71,7 +71,11 @@ public:
         }
         if (_isMasking) {
             for (auto && rect : _maskOutAreas)
-                if ((rect->x1 < x < rect->x2) && (rect->y1 < y < rect->y2))
+                if (
+                    (x >= rect->_x1) 
+                    && (x < rect->_x2) 
+                    && (y >= rect->_y1)  
+                    && (y < rect->_y2))
                     return;
         }
         
@@ -123,7 +127,17 @@ public:
     void SetTop(int16_t top) { _top = top; }
     void SetWidth(uint16_t width) { _width = width; }
     void SetHeight(uint16_t height) { _height = height; }
-
+    void SetIsMasking(bool isMasking) { _isMasking = isMasking; };
+    void AddMaskingArea(int x0, int y0, int x1, int y1) {
+        _maskOutAreas.push_back(new rect(x0, y0, x1, y1) );
+    };
+    
+    void ClearMaskingAreas() {
+        for (auto & maskOutArea : _maskOutAreas) {
+            delete maskOutArea;
+        }
+        _maskOutAreas.clear();
+    }
 protected:
     View &_display;
     int16_t _left;

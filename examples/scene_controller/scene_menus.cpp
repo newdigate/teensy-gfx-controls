@@ -29,15 +29,17 @@ Button button3 = Button();
 Encoder encoderLeftRight;
 Encoder encoderUpDown;
 
-typedef SceneController< st7735_opengl<Encoder, Button>, Encoder, Button> MySceneController;
+typedef SceneController< VirtualView, Encoder, Button> MySceneController;
 
 st7735_opengl<Encoder, Button> Display(true, 20, &encoderLeftRight, &encoderUpDown, &button, &button2, &button3);
-MySceneController sceneController(Display, encoderLeftRight, encoderUpDown, button, button2, button3);
+VirtualView virtualDisplay(Display, 0, 0, 128, 128);
+MySceneController sceneController(virtualDisplay, encoderLeftRight, encoderUpDown, button, button2, button3);
 
 void hideDialog(int buttonIndex);
 
 #define NUM_DIALOG_MENU_ITEMS 3
-TeensyMenu *dialogMenu = new TeensyMenu(Display, 20, 20, 88, 88, ST7735_GREEN, ST7735_BLACK);
+#define Sapphire	0x092D
+TeensyMenu *dialogMenu = new TeensyMenu(virtualDisplay, 88, 88, 19, 19, Sapphire, ST7735_BLACK);
 TeensyMenuItem dialogMenuItems[NUM_DIALOG_MENU_ITEMS] = {
   TeensyMenuItem(*dialogMenu, [] (View *v) {v->drawString("Option 1", 0, 0);}, 8), 
   TeensyMenuItem(*dialogMenu, [] (View *v) {v->drawString("Option 2", 0, 0);}, 8), 
@@ -58,7 +60,7 @@ void showDialog(int buttonIndex) {
 
 void hideDialog(int buttonIndex) {
   if (showingDialog) {
-     Serial.printf("hideDialog() \n");
+    Serial.printf("hideDialog() \n");
     sceneController.PopDialog();
     showingDialog = false;
   }
@@ -67,7 +69,7 @@ void hideDialog(int buttonIndex) {
 void DrawSettingsMenuItem0(View *v);
 
 #define NUM_SETTINGS_MENU_ITEMS 20
-TeensyMenu settingsMenu = TeensyMenu( Display, 10, 10, 108, 108, ST7735_BLUE, ST7735_BLACK );
+TeensyMenu settingsMenu = TeensyMenu( virtualDisplay, 128, 128, 0, 0, ST7735_BLUE, ST7735_BLACK );
 TeensyMenuItem settingMenuItems[NUM_SETTINGS_MENU_ITEMS] = {
   TeensyMenuItem(settingsMenu, DrawSettingsMenuItem0, 16),
   TeensyMenuItem(settingsMenu, 
@@ -113,7 +115,7 @@ Scene *settingsScene = new Scene(
                               settingsMenu.Update(); 
                               pianoDisplay1.drawPiano();
                         },      //            std::function<void()> update = nullptr,  
-                        [] { Display.fillScreen(ST7735_BLUE); settingsMenu.NeedsUpdate = true; pianoDisplay1.displayNeedsUpdating(); },   //             std::function<void()> initScreen = nullptr, 
+                        [] { virtualDisplay.fillScreen(ST7735_BLUE); settingsMenu.NeedsUpdate = true; pianoDisplay1.displayNeedsUpdating(); },   //             std::function<void()> initScreen = nullptr, 
                         [] { },   //             std::function<void()> uninitScreen = nullptr, 
                         [] (unsigned index) { 
                             settingsMenu.ButtonDown(index);
@@ -130,14 +132,14 @@ Scene *editScene = new Scene(
                         _bmp_edit_off, 
                         16, 16,
                         [] { }, 
-                        [] { Display.fillScreen(ST7735_RED); });
+                        [] { virtualDisplay.fillScreen(ST7735_RED); });
 
 Scene *playScene = new Scene(
                         _bmp_play_on, 
                         _bmp_play_off, 
                         16, 16,
                         [] { }, 
-                        [] { Display.fillScreen(ST7735_GREEN); });                
+                        [] { virtualDisplay.fillScreen(ST7735_GREEN); });                
 
 void setup() {
 
@@ -193,8 +195,18 @@ void setup() {
   }
 }
 
+int loopCounter = 0;
+
 void loop() {
   sceneController.Process();
+ 
+  if (loopCounter % 100 == 0) {
+    pianoDisplay1.reset();
+    float r = abs(rand()) / (float)INT32_MAX;
+    unsigned char randomKey = (r * 32.0) + 12;
+    pianoDisplay1.keyDown(  randomKey);
+  }
+  loopCounter++;
 }
 
 

@@ -347,11 +347,43 @@ public:
         } else 
         {
             // the scene menu is hidden and we are rending the current scene
-            if (_dialogs.size() > 0) {
+            bool dialogActive = _dialogs.size() > 0;
+             
+            if (_currentScene > -1) {
+
+                if (_currentSceneNeedsInit) {
+                    _currentSceneNeedsInit = false;
+                    if (dialogActive) _display.SetIsMasking(true);
+                    _scenes[_currentScene]->InitScreen();
+                    if (dialogActive) _display.SetIsMasking(false);
+                    //Serial.println("Current scene: InitScreen");
+                }
+                if (!dialogActive) {
+                    // marshall the inputs to th current scene
+                    if (up) {
+                        _scenes[_currentScene]->Rotary1Changed(false);
+                    } else if (down) {
+                        _scenes[_currentScene]->Rotary1Changed(true);
+                    }
+
+                    if (left) {
+                        _scenes[_currentScene]->Rotary2Changed(false);
+                    } else if (right) {
+                        _scenes[_currentScene]->Rotary2Changed(true);
+                    }
+                }
+                if (dialogActive)
+                    _display.SetIsMasking(true);
+                Update();
+                if (dialogActive)
+                    _display.SetIsMasking(false);
+            }
+        
+            if (dialogActive) {
                 if (up) {
-                    _dialogs.top()->IncreaseSelectedIndex();
-                } else if (down) {
                     _dialogs.top()->DecreaseSelectedIndex();
+                } else if (down) {
+                    _dialogs.top()->IncreaseSelectedIndex();
                 }
 
                 if (left) {
@@ -361,30 +393,7 @@ public:
                 }
        
                 _dialogs.top()->Update();
-            } else 
-            if (_currentScene > -1) {
-
-                if (_currentSceneNeedsInit) {
-                    _currentSceneNeedsInit = false;
-                    _scenes[_currentScene]->InitScreen();
-                    //Serial.println("Current scene: InitScreen");
-                }
-
-                // marshall the inputs to th current scene
-                if (up) {
-                    _scenes[_currentScene]->Rotary1Changed(false);
-                } else if (down) {
-                    _scenes[_currentScene]->Rotary1Changed(true);
-                }
-
-                if (left) {
-                    _scenes[_currentScene]->Rotary2Changed(false);
-                } else if (right) {
-                    _scenes[_currentScene]->Rotary2Changed(true);
-                }      
-
-                Update();
-            }
+            } 
         }
     }
 
@@ -398,11 +407,14 @@ public:
 
     void AddDialog(TeensyControl *control){
         _dialogs.push(control);
+        _display.AddMaskingArea(control->Left(), control->Top(), control->Left() + control->Width(), control->Top() + control->Height());
     }
 
     void PopDialog() {
         if (_dialogs.size() > 0) {
             _dialogs.pop();
+            _display.ClearMaskingAreas();
+            _currentSceneNeedsInit = true;
         }
     }
 
