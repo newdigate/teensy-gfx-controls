@@ -77,6 +77,7 @@ jobs:
         cd /opt
         tar xjf /tmp/gcc-arm-none-eabi.tar.bz2
         rm /tmp/gcc-arm-none-eabi.tar.bz2
+        ls
 
     - name: install teensy-cmake-macros
       run: cd deps/teensy-cmake-macros && mkdir cmake-build-debug && cd cmake-build-debug && cmake -DCMAKE_BUILD_TYPE=Debug .. && sudo make install
