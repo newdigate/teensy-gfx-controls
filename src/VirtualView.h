@@ -38,7 +38,7 @@ public:
     }
 
     virtual void ClearBackground() {
-        fillRect(_left, _top, _width, _height, ST7735_BLACK);
+        fillRect(_left, _top, _width, _height, 0);
     }
 
     void XOffset(int16_t xOffset) {
