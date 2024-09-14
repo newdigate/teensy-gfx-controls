@@ -307,6 +307,10 @@ public:
         NeedsUpdate = true;   
         return;
     }
+
+    int GetSelectedIndex() {
+        return _selectedIndex;
+    }
     bool NeedsUpdate = true;
      
 protected:
@@ -315,11 +319,11 @@ protected:
     uint16_t _colorMenuItemBackground;
     uint16_t _colorMenuItemBackgroundSelected;
 
-    uint _instance;
-    static uint __instanceCount;
+    uint32_t _instance;
+    static uint32_t __instanceCount;
 };
 
-uint TeensyMenu::__instanceCount = 0;
+uint32_t TeensyMenu::__instanceCount = 0;
 
 class TeensyMenuItem : public TeensyControl {
 public:
