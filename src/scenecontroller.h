@@ -194,14 +194,14 @@ public:
     void DrawSceneMenu() {
         if (!_active)
         {
-            FillRect(0, 0, 128, 16, ST7735_BLACK);
+            FillRect(0, 0, 128, 16, 0);
             return;
         }
 
         int sceneIndex = 0;
 
         int x = _scenes.size() * 16;
-        FillRect(x, 0, 128, 16, ST7735_WHITE);
+        FillRect(x, 0, 128, 16, 0xFFFF);
         
         x = 0;
         for(auto&& scene : _scenes) {
