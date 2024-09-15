@@ -1,0 +1,43 @@
+find_library(teensy_x86_stubs NAME teensy_x86_stubs)
+include_directories(${teensy_x86_stubs_INCLUDE_DIR})
+
+find_library(teensy_x86_encoder_stubs NAME teensy_x86_encoder_stubs)
+include_directories(${teensy_x86_encoder_stubs_INCLUDE_DIR})
+
+find_library(teensy_x86_bounce2_stubs NAME teensy_x86_bounce2_stubs)
+include_directories(${teensy_x86_bounce2_stubs_INCLUDE_DIR})
+
+find_library(teensy_audio_x86_stubs NAME teensy_audio_x86_stubs)
+include_directories(${teensy_audio_x86_stubs_INCLUDE_DIR})
+
+find_library(teensy_audio_x86_stubs_soundio NAME teensy_audio_x86_stubs_soundio)
+include_directories(${teensy_audio_x86_stubs_soundio_INCLUDE_DIR})
+
+find_library(teensy_audio_x86_stubs NAME teensy_audio_x86_stubs)
+include_directories(${teensy_audio_x86_stubs_INCLUDE_DIR})
+
+find_library(teensy_x86_sd_stubs NAME teensy_x86_sd_stubs)
+include_directories(${teensy_x86_sd_stubs_INCLUDE_DIR})
+
+find_library(teensy_x86_midi_stubs NAME teensy_x86_midi_stubs)
+include_directories(${teensy_x86_midi_stubs_INCLUDE_DIR})
+
+find_library(rtmidi NAME rtmidi)
+include_directories(${rtmidi_INCLUDE_DIR})
+
+find_library(teensy_x86_midi_stubs_rtmidi NAME teensy_x86_midi_stubs_rtmidi)
+include_directories(${teensy_x86_midi_stubs_rtmidi_INCLUDE_DIR})
+
+find_library(teensy_st7735_linux_stubs NAME teensy_st7735_linux_stubs)
+include_directories(${teensy_st7735_linux_stubs_INCLUDE_DIR})
+
+find_library(teensy_gfx NAME teensy_gfx)
+include_directories(${teensy_gfx_INCLUDE_DIR})
+
+find_library(teensy_st7735_linux_opengl NAME teensy_st7735_linux_opengl)
+include_directories(${teensy_st7735_linux_extras_opengl_INCLUDE_DIR})
+
+add_definitions(-fms-extensions)
+add_definitions(-DArduino=146)
+
+include(../../cmake/opengl.cmake)

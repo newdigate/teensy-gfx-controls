@@ -193,10 +193,6 @@ public:
         _colorMenuItemBackground(colorMenuItemBackground),
         _colorMenuItemBackgroundSelected(colorMenuItemBackgroundSelected)
         {
-            _instance = __instanceCount;
-            TeensyMenu::__instanceCount++;
-            Serial.printf("%d: TeensyMenu() \n", _instance);
-
         }
 
     virtual ~TeensyMenu() {
@@ -204,7 +200,6 @@ public:
 
     void DrawBackground() {
         if (NeedsUpdate) {
-            Serial.printf("%d: DrawBackground()\n", _instance);
             _display.fillRect(_left, _top, _width, _height, _colorMenuItemBackground);
 
             if (_selectedIndex > -1 && _selectedIndex < _children.size() ) {
@@ -215,7 +210,6 @@ public:
 
     void Update() override {
         if (NeedsUpdate) {
-            Serial.printf("%d: Update()\n", _instance);
             //fillRect(0, 0, _width, _height, _colorMenuItemBackground);
             DrawBackground();
             TeensyControl::Update();
@@ -231,7 +225,6 @@ public:
     }
 
     void IncreaseSelectedIndex() override {
-        Serial.printf("%d: DecreaseSelectedIndex() \n", _instance);
 
         if (_selectedIndex < _children.size() -1) {
             _selectedIndex++;
@@ -240,7 +233,6 @@ public:
         }
     }
     void DecreaseSelectedIndex() override {
-        Serial.printf("%d: DecreaseSelectedIndex() \n", _instance);
 
         if (_selectedIndex > 0 ) {
             _selectedIndex--;
@@ -300,7 +292,6 @@ public:
     }
 
     void ButtonDown(uint8_t buttonNumber) override {
-        Serial.printf("%d: ButtonDown(%d) \r\n", _instance, buttonNumber);
         if (_selectedIndex < 0 || _selectedIndex > _children.size() -1 || _children.size() < 1)
             return;
         _children[_selectedIndex]->ButtonDown(buttonNumber);
@@ -319,8 +310,6 @@ protected:
     uint16_t _colorMenuItemBackground;
     uint16_t _colorMenuItemBackgroundSelected;
 
-    uint32_t _instance;
-    static uint32_t __instanceCount;
 };
 
 class TeensyMenuItem : public TeensyControl {
