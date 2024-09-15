@@ -323,8 +323,6 @@ protected:
     static uint32_t __instanceCount;
 };
 
-uint32_t TeensyMenu::__instanceCount = 0;
-
 class TeensyMenuItem : public TeensyControl {
 public:
     TeensyMenuItem(
