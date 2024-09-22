@@ -315,7 +315,7 @@ protected:
 class TeensyMenuItem : public TeensyControl {
 public:
     TeensyMenuItem(
-            View &view, 
+            View &view,
             std::function<void(View*)> updateWithView, 
             unsigned int height, 
             std::function<void(bool forward)> menuValueScroll = nullptr,
@@ -332,8 +332,7 @@ public:
     {
     }
 
-    virtual ~TeensyMenuItem() {
-    }
+    ~TeensyMenuItem() override = default;
 
     virtual void MenuItemUpdate() { 
         if (_updateWithView != nullptr) {
@@ -374,6 +373,35 @@ private:
     std::function<bool(uint8_t channel, uint8_t data1, uint8_t data2)> _menuMidiCCEvent;
     std::function<void(uint8_t buttonNumber)> _buttonDownEvent;
 
+};
+class TeensyStringMenuItem : public TeensyMenuItem {
+public:
+    TeensyStringMenuItem(
+            View &view,
+            const String &label,
+            const std::function<void(uint8_t buttonNumber)>& buttonDownEvent) :
+        TeensyMenuItem (view, std::bind(&TeensyStringMenuItem::MenuItemUpdate, this), 10, nullptr, nullptr, nullptr, buttonDownEvent), //std::bind(&TeensyStringMenuItem::ButtonDown, this, std::placeholders::_1)),
+        _label(label),
+        _buttonDownEvent(buttonDownEvent)
+    {
+    }
+
+    ~TeensyStringMenuItem() override = default;
+
+    void MenuItemUpdate() override {
+        setTextSize(1);
+        drawString(_label.c_str(), 0, 1);//+_top-_yOffset);
+    }
+
+    void ButtonDown(unsigned char buttonNumber) override {
+        if (_buttonDownEvent != nullptr) {
+            return _buttonDownEvent(buttonNumber);
+        }
+    }
+
+private:
+    const String &_label;
+    const std::function<void(uint8_t buttonNumber)> &_buttonDownEvent;
 };
 
 class TeensyMenuController {

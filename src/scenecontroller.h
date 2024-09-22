@@ -157,7 +157,7 @@ private:
 
 class BaseSceneController {
 public:
-    BaseSceneController() : _scenes()
+    BaseSceneController() : _menuEnabled(false)
     {
     }
 
@@ -215,6 +215,7 @@ public:
 
     void AddScene(BaseScene *scene){
         _scenes.push_back(scene);
+        _menuEnabled = _scenes.size() > 1;
     }
     
     void DrawIcon(const uint16_t * icon, int x, int y, int iconWidth, int iconHeight) {
@@ -241,6 +242,7 @@ protected:
     std::vector< BaseScene* > _scenes;
     int _currentScene = -1;
     int _previousScene = -1;
+    bool _menuEnabled;
 };
 
 template< typename TDisplay, typename TEncoder, typename TButton >
@@ -267,7 +269,7 @@ public:
 
         if (_button.changed() && !_button.fell()) {
             // button has been pressed...
-            if (!_active) {
+            if (!_active && _menuEnabled) {
                 _active = true;
                 _previousScene = _currentScene;
                 DrawSceneMenu();
@@ -353,9 +355,7 @@ public:
 
                 if (_currentSceneNeedsInit) {
                     _currentSceneNeedsInit = false;
-                    if (dialogActive) _display.SetIsMasking(true);
                     _scenes[_currentScene]->InitScreen();
-                    if (dialogActive) _display.SetIsMasking(false);
                     //Serial.println("Current scene: InitScreen");
                 }
                 if (!dialogActive) {
@@ -372,11 +372,7 @@ public:
                         _scenes[_currentScene]->Rotary2Changed(true);
                     }
                 }
-                if (dialogActive)
-                    _display.SetIsMasking(true);
                 Update();
-                if (dialogActive)
-                    _display.SetIsMasking(false);
             }
         
             if (dialogActive) {
@@ -407,13 +403,11 @@ public:
 
     void AddDialog(TeensyControl *control){
         _dialogs.push(control);
-        _display.AddMaskingArea(control->Left(), control->Top(), control->Left() + control->Width(), control->Top() + control->Height());
     }
 
     void PopDialog() {
         if (_dialogs.size() > 0) {
             _dialogs.pop();
-            _display.ClearMaskingAreas();
             _currentSceneNeedsInit = true;
         }
     }
