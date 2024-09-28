@@ -112,7 +112,7 @@ void DrawSettingsMenuItem0(View *v) {
   pianoDisplay1.drawFullPiano();
 }
 
-Scene *settingsScene = new Scene(
+Scene *settingsScene = new Scene(virtualDisplay, 128, 128, 0, 0,
                         _bmp_settings_on, 
                         _bmp_settings_off, 
                         16, 16, 
@@ -132,14 +132,14 @@ Scene *settingsScene = new Scene(
                         [] (bool forward) { } //std::function<void(bool)> rotary2Changed = nullptr
                         );
 
-Scene *editScene = new Scene(
+Scene *editScene = new Scene(virtualDisplay, 128, 128, 0, 0,
                         _bmp_edit_on, 
                         _bmp_edit_off, 
                         16, 16,
                         [] { }, 
                         [] { virtualDisplay.fillScreen(ST7735_RED); });
 
-Scene *playScene = new Scene(
+Scene *playScene = new Scene(virtualDisplay, 128, 128, 0, 0,
                         _bmp_play_on, 
                         _bmp_play_off, 
                         16, 16,

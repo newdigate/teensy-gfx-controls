@@ -6,13 +6,13 @@
 #include "teensy_controls.h"
 #include "MIDI.h"
 
-class BaseScene {
+class BaseScene : public TeensyControl {
 public:
-    BaseScene(
+    BaseScene(View &view, unsigned int width, unsigned int height, unsigned int left, unsigned int top,
             const uint16_t * iconOn, 
             const uint16_t * iconOff, 
             unsigned int iconWidth, 
-            unsigned int iconHeight) :
+            unsigned int iconHeight) : TeensyControl(view, nullptr, width, height, left, top),
         _iconWidth(iconWidth),
         _iconHeight(iconHeight),
         _iconOn(iconOn), 
@@ -30,8 +30,6 @@ public:
     virtual void ButtonPressed(unsigned buttonIndex) {}
     virtual void Rotary1Changed(bool forward) {}
     virtual void Rotary2Changed(bool forward) {}
-    virtual bool HandleNoteOnOff(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) { return false; }
-    virtual bool HandleControlChange(uint8_t channel, uint8_t data1, uint8_t data2) { return false; }
 
     const uint16_t * GetIcon(bool on) {
         return (on)? _iconOn : _iconOff;
@@ -48,7 +46,7 @@ protected:
 
 class Scene : public BaseScene {
 public:
-    Scene(
+    Scene(View &view, unsigned int width, unsigned int height, unsigned int left, unsigned int top,
             const uint16_t * iconOn, 
             const uint16_t * iconOff, 
             unsigned int iconWidth, 
@@ -61,7 +59,7 @@ public:
             std::function<void(bool)> rotary2Changed = nullptr,
             std::function<bool(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity)> handleNoteOnOff = nullptr,
             std::function<bool(uint8_t channel, uint8_t data1, uint8_t data2)> handleControlChange = nullptr) 
-        : BaseScene(iconOn, iconOff, iconWidth, iconHeight),
+        : BaseScene(view, width, height, left, top, iconOn, iconOff, iconWidth, iconHeight),
         f_update(update),
         f_initScreen(initScreen),
         f_uninitScreen(uninitScreen),
@@ -129,18 +127,21 @@ public:
         }
     }
 
-    bool HandleNoteOnOff(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) override {
+    void NoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) override {
         if (f_handleNoteOnOff != nullptr) {
-            return f_handleNoteOnOff(noteDown, channel, pitch, velocity);
+            f_handleNoteOnOff(true, channel, pitch, velocity);
         }
-        return false;
+    }
+    void NoteOff(uint8_t channel, uint8_t pitch, uint8_t velocity) override {
+        if (f_handleNoteOnOff != nullptr) {
+            f_handleNoteOnOff(false, channel, pitch, velocity);
+        }
     }
 
-    bool HandleControlChange(uint8_t channel, uint8_t data1, uint8_t data2) override {
+    void ControlChange(uint8_t channel, uint8_t data1, uint8_t data2) override {
         if (f_handleControlChange != nullptr) {
-            return f_handleControlChange(channel, data1, data2);
+            f_handleControlChange(channel, data1, data2);
         }
-        return false;
     }
 
 private:
@@ -152,8 +153,8 @@ private:
     std::function<void(bool)> f_rotary1Changed = nullptr;
     std::function<void(bool)> f_rotary2Changed = nullptr;
 
-    std::function<bool(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity)> f_handleNoteOnOff = nullptr;
-    std::function<bool(uint8_t channel, uint8_t data1, uint8_t data2)> f_handleControlChange = nullptr;
+    std::function<void(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity)> f_handleNoteOnOff = nullptr;
+    std::function<void(uint8_t channel, uint8_t data1, uint8_t data2)> f_handleControlChange = nullptr;
 };
 
 class BaseSceneController {
@@ -217,49 +218,193 @@ public:
         _scenes.push_back(scene);
         _menuEnabled = _scenes.size() > 1;
     }
+    void AddDialog(TeensyControl *control){
+        _dialogs.push(control);
+    }
+
+    void PopDialog() {
+        if (_dialogs.size() > 0) {
+            _dialogs.pop();
+            _currentSceneNeedsInit = true;
+        }
+    }
     void DrawIcon(const uint16_t * icon, int x, int y, int iconWidth, int iconHeight) {
         for (int i=0; i < iconWidth; i++)
             for (int j=0; j < iconHeight; j++)
                 DrawPixel(x+i, y+j, icon[i + (j * iconWidth)]);
     }
-    void MidiNoteUpDown(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) {
-        if (_currentScene < 0 || _currentScene >= _scenes.size())
-            return ;
-
-        _scenes[_currentScene]->HandleNoteOnOff(noteDown, channel, pitch, velocity);
-    }
-    void MidiControlChange(uint8_t channel, uint8_t data1, uint8_t data2) {
-        if (_currentScene < 0 || _currentScene >= _scenes.size())
-            return;
-
-        _scenes[_currentScene]->HandleControlChange(channel, data1, data2);
-    }
 
     virtual void NoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) {
-        MidiNoteUpDown(true, channel, pitch, velocity);
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->NoteOn (channel, pitch, velocity);
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->NoteOn(channel, pitch, velocity);
     }
     virtual void NoteOff(uint8_t channel, uint8_t pitch, uint8_t velocity) {
-        MidiNoteUpDown(false, channel, pitch, velocity);
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->NoteOff (channel, pitch, velocity);
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->NoteOff(channel, pitch, velocity);
     }
-    virtual void AfterTouchPoly(byte inChannel, byte inNote, byte inValue) {}
+    virtual void AfterTouchPoly(byte inChannel, byte inNote, byte inValue)  {
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->AfterTouchPoly (inChannel, inNote, inValue);
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->AfterTouchPoly(inChannel, inNote, inValue);
+    }
     virtual void ControlChange(byte inChannel, byte inNumber, byte inValue) {
-        MidiControlChange(inChannel, inNumber, inValue);
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->ControlChange (inChannel, inNumber, inValue);
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->ControlChange(inChannel, inNumber, inValue);
     }
-    virtual void ProgramChange(byte inChannel, byte inNumber) {}
-    virtual void AfterTouchChannel(byte inChannel, byte inPressure) {}
-    virtual void PitchBend(byte inChannel, int inValue) {}
-    virtual void SysEx(byte* inData, unsigned inSize) {}
-    virtual void MtcQuarterFrame(byte inData) {}
-    virtual void SongPosition(unsigned inBeats) {}
-    virtual void SongSelect(byte inSongNumber) {}
-    virtual void TuneRequest() {}
-    virtual void Clock() {}
-    virtual void Start() {}
-    virtual void Continue() {}
-    virtual void Stop() {}
-    virtual void ActiveSensing() {}
-    virtual void SystemReset() {}
-    virtual void Tick() {}
+    virtual void ProgramChange(byte inChannel, byte inNumber)  {
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->ProgramChange (inChannel, inNumber);
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->ProgramChange(inChannel, inNumber);
+    }
+    virtual void AfterTouchChannel(byte inChannel, byte inPressure)  {
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->AfterTouchChannel (inChannel, inPressure);
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->AfterTouchChannel(inChannel, inPressure);
+    }
+    virtual void PitchBend(byte inChannel, int inValue) {
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->PitchBend (inChannel, inValue);
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->PitchBend(inChannel, inValue);
+    }
+    virtual void SysEx(byte* inData, unsigned inSize) {
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->SysEx (inData, inSize);
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->SysEx(inData, inSize);
+    }
+    virtual void MtcQuarterFrame(byte inData)  {
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->MtcQuarterFrame (inData);
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->MtcQuarterFrame(inData);
+    }
+    virtual void SongPosition(unsigned inBeats)  {
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->SongPosition (inBeats);
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->SongPosition(inBeats);
+    }
+    virtual void SongSelect(byte inSongNumber)  {
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->SongSelect (inSongNumber);
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->SongSelect(inSongNumber);
+    }
+    virtual void TuneRequest()  {
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->TuneRequest ();
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->TuneRequest();
+    }
+    virtual void Clock()  {
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->Clock ();
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->Clock();
+    }
+    virtual void Start()  {
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->Start ();
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->Start();
+    }
+    virtual void Continue()  {
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->Continue ();
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->Continue();
+    }
+    virtual void Stop()  {
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->Stop ();
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->Stop();
+    }
+    virtual void ActiveSensing()  {
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->ActiveSensing ();
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->ActiveSensing();
+    }
+    virtual void SystemReset() {
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->SystemReset ();
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->SystemReset();
+    }
+    virtual void Tick()  {
+        if (_dialogs.size() > 0) {
+            _dialogs.top()->Tick ();
+            return;
+        }
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return ;
+        _scenes[_currentScene]->Tick();
+    }
 
 protected:
     bool _active = false;
@@ -267,6 +412,9 @@ protected:
     int _currentScene = -1;
     int _previousScene = -1;
     bool _menuEnabled;
+    std::stack< TeensyControl* > _dialogs;
+    bool _currentSceneNeedsInit = true;
+
 };
 
 template< class TDisplay, class TEncoder, class TButton, class TMidiTransport>
@@ -451,16 +599,7 @@ public:
         _display.Pixel(x, y, color);
     };
 
-    void AddDialog(TeensyControl *control){
-        _dialogs.push(control);
-    }
 
-    void PopDialog() {
-        if (_dialogs.size() > 0) {
-            _dialogs.pop();
-            _currentSceneNeedsInit = true;
-        }
-    }
 
     static void handleNoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) {
         for (auto instance: _instances) {
@@ -565,8 +704,6 @@ protected:
     Encoder &_encoderUpDown;
     Encoder &_encoderLeftRight;
     midi::MidiInterface<TMidiTransport>&_midi;
-    bool _currentSceneNeedsInit = true;
-    std::stack< TeensyControl* > _dialogs;
     // encoder stuff
     long Position = 0, oldPosition = 0;
     long PositionY = 0, oldPositionY = 0;

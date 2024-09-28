@@ -33,14 +33,6 @@ public:
     virtual void ValueScroll(bool forward) { 
     }
     
-    virtual bool MidiNoteEvent(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) { 
-        return false;
-    }
-
-    virtual bool MidiCCEvent(uint8_t channel, uint8_t data1, uint8_t data2) {
-        return false;
-    }
-
     virtual void ButtonDown(uint8_t buttonNumber) {
     }
 
@@ -50,6 +42,25 @@ public:
     virtual void DecreaseSelectedIndex() {
     }
 
+    virtual void NoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) { }
+    virtual void NoteOff(uint8_t channel, uint8_t pitch, uint8_t velocity) { }
+    virtual void AfterTouchPoly(byte inChannel, byte inNote, byte inValue) { }
+    virtual void ControlChange(byte inChannel, byte inNumber, byte inValue) { }
+    virtual void ProgramChange(byte inChannel, byte inNumber) { }
+    virtual void AfterTouchChannel(byte inChannel, byte inPressure) { }
+    virtual void PitchBend(byte inChannel, int inValue) { }
+    virtual void SysEx(byte* inData, unsigned inSize) {}
+    virtual void MtcQuarterFrame(byte inData) {}
+    virtual void SongPosition(unsigned inBeats) {}
+    virtual void SongSelect(byte inSongNumber) {}
+    virtual void TuneRequest() {}
+    virtual void Clock() {}
+    virtual void Start() {}
+    virtual void Continue() {}
+    virtual void Stop() {}
+    virtual void ActiveSensing() {}
+    virtual void SystemReset() {}
+    virtual void Tick() {}
 protected:
     std::function<void()> f_update = nullptr;
     std::vector<TeensyControl *> _children;
@@ -275,20 +286,18 @@ public:
         NeedsUpdate = true;
     }
 
-    bool MidiNoteEvent(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) override { 
+    void NoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) override {
         if (_selectedIndex < 0 || _selectedIndex > _children.size() -1 || _children.size() < 1)
-            return false;
-        bool result = _children[_selectedIndex]->MidiNoteEvent(noteDown, channel, pitch, velocity);
+            return;
+        _children[_selectedIndex]->NoteOn(channel, pitch, velocity);
         NeedsUpdate = true;   
-        return result;
     }
 
-    bool MidiCCEvent(uint8_t channel, uint8_t data1, uint8_t data2) override {
+    void ControlChange(uint8_t channel, uint8_t data1, uint8_t data2) override {
         if (_selectedIndex < 0 || _selectedIndex > _children.size() -1 || _children.size() < 1)
-            return false;
-        bool result = _children[_selectedIndex]->MidiCCEvent(channel, data1, data2);
+            return;
+        _children[_selectedIndex]->ControlChange(channel, data1, data2);
         NeedsUpdate = true;   
-        return result;
     }
 
     void ButtonDown(uint8_t buttonNumber) override {
@@ -346,18 +355,21 @@ public:
         }
     }
 
-    bool MidiNoteEvent(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) override {
+    void NoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) override {
         if (_menuMidiNoteEvent != nullptr) {
-            return _menuMidiNoteEvent(noteDown, channel, pitch, velocity);
+            _menuMidiNoteEvent(true, channel, pitch, velocity);
         }
-        return false;
+    }
+    void NoteOff(uint8_t channel, uint8_t pitch, uint8_t velocity) override {
+        if (_menuMidiNoteEvent != nullptr) {
+            _menuMidiNoteEvent(false, channel, pitch, velocity);
+        }
     }
 
-    bool MidiCCEvent(uint8_t channel, uint8_t data1, uint8_t data2) override {
+    void ControlChange(uint8_t channel, uint8_t data1, uint8_t data2) override {
         if (_menuMidiCCEvent != nullptr) {
-            return _menuMidiCCEvent(channel, data1, data2);
+            _menuMidiCCEvent(channel, data1, data2);
         }
-        return false;
     }
 
     void ButtonDown(uint8_t buttonNumber) override {
@@ -369,8 +381,8 @@ public:
 private:
     std::function<void(View*)> _updateWithView;
     std::function<void(bool forward)> _menuValueScroll;
-    std::function<bool(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity)> _menuMidiNoteEvent;
-    std::function<bool(uint8_t channel, uint8_t data1, uint8_t data2)> _menuMidiCCEvent;
+    std::function<void(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity)> _menuMidiNoteEvent;
+    std::function<void(uint8_t channel, uint8_t data1, uint8_t data2)> _menuMidiCCEvent;
     std::function<void(uint8_t buttonNumber)> _buttonDownEvent;
 
 };
