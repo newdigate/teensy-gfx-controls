@@ -212,31 +212,54 @@ public:
             sceneIndex++;
         }
     }
-
     void AddScene(BaseScene *scene){
         _scenes.push_back(scene);
         _menuEnabled = _scenes.size() > 1;
     }
-    
     void DrawIcon(const uint16_t * icon, int x, int y, int iconWidth, int iconHeight) {
         for (int i=0; i < iconWidth; i++)
             for (int j=0; j < iconHeight; j++)
                 DrawPixel(x+i, y+j, icon[i + (j * iconWidth)]);
     }
-
-    bool MidiNoteUpDown(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) {
+    void MidiNoteUpDown(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) {
         if (_currentScene < 0 || _currentScene >= _scenes.size())
-            return false;
+            return ;
 
-        return _scenes[_currentScene]->HandleNoteOnOff(noteDown, channel, pitch, velocity);
+        _scenes[_currentScene]->HandleNoteOnOff(noteDown, channel, pitch, velocity);
+    }
+    void MidiControlChange(uint8_t channel, uint8_t data1, uint8_t data2) {
+        if (_currentScene < 0 || _currentScene >= _scenes.size())
+            return;
+
+        _scenes[_currentScene]->HandleControlChange(channel, data1, data2);
     }
 
-    bool MidiControlChange(uint8_t channel, uint8_t data1, uint8_t data2) {
-        if (_currentScene < 0 || _currentScene >= _scenes.size())
-            return false;
-
-        return _scenes[_currentScene]->HandleControlChange(channel, data1, data2);
+    virtual void handleNoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) {
+        MidiNoteUpDown(true, channel, pitch, velocity);
     }
+    virtual void handleNoteOff(uint8_t channel, uint8_t pitch, uint8_t velocity) {
+        MidiNoteUpDown(false, channel, pitch, velocity);
+    }
+    virtual void handleAfterTouchPoly(byte inChannel, byte inNote, byte inValue) {}
+    virtual void handleControlChange(byte inChannel, byte inNumber, byte inValue) {
+        MidiControlChange(inChannel, inNumber, inValue);
+    }
+    virtual void handleProgramChange(byte inChannel, byte inNumber) {}
+    virtual void handleAfterTouchChannel(byte inChannel, byte inPressure) {}
+    virtual void handlePitchBend(byte inChannel, int inValue) {}
+    virtual void handleSysEx(byte* inData, unsigned inSize) {}
+    virtual void handleMtcQuarterFrame(byte inData) {}
+    virtual void handleSongPosition(unsigned inBeats) {}
+    virtual void handleSongSelect(byte inSongNumber) {}
+    virtual void handleTuneRequest() {}
+    virtual void handleClock() {}
+    virtual void handleStart() {}
+    virtual void handleContinue() {}
+    virtual void handleStop() {}
+    virtual void handleActiveSensing() {}
+    virtual void handleSystemReset() {}
+    virtual void handleTick() {}
+
 protected:
     bool _active = false;
     std::vector< BaseScene* > _scenes;
@@ -245,24 +268,46 @@ protected:
     bool _menuEnabled;
 };
 
-template< typename TDisplay, typename TEncoder, typename TButton >
+template< typename TDisplay, typename TEncoder, typename TButton, typename TMidi >
 class SceneController : public BaseSceneController {
 public:
-    SceneController(TDisplay &display, TEncoder &encoderUpDown, TEncoder &encoderLeftRight, TButton &button, TButton &button2, TButton &button3) : 
-        BaseSceneController(),
-        _display(display),
-        _encoderUpDown(encoderUpDown),
-        _encoderLeftRight(encoderLeftRight),
-        _button(button),
-        _button2(button2),
-        _button3(button3)
-    {
+    SceneController(TDisplay &display,
+        TEncoder &encoderUpDown,
+        TEncoder &encoderLeftRight,
+        TButton &button,
+        TButton &button2,
+        TButton &button3,
+        TMidi &midi) : _display(display),
+                       _button(button),
+                       _button2(button2),
+                       _button3(button3),
+                       _encoderUpDown(encoderUpDown),
+                       _encoderLeftRight(encoderLeftRight),
+                       _midi(midi) {
+        _midi.setHandleNoteOn( [] (uint8_t channel, uint8_t pitch, uint8_t velocity) {});  // Put only the name of the function
+        _midi.setHandleNoteOff(std::bind(&BaseSceneController::handleNoteOff, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        _midi.setHandleClock(std::bind(&BaseSceneController::handleClock, this));
+        _midi.setHandleContinue(std::bind(&BaseSceneController::handleContinue, this));
+        _midi.setHandleStart(std::bind(&BaseSceneController::handleStart, this));
+        _midi.setHandleStop(std::bind(&BaseSceneController::handleStop, this));
+        _midi.setHandleTick(std::bind(&BaseSceneController::handleTick, this));
+        _midi.setHandleActiveSensing(std::bind(&BaseSceneController::handleActiveSensing, this));
+        _midi.setHandleControlChange(std::bind(&BaseSceneController::handleControlChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        _midi.setHandlePitchBend(std::bind(&BaseSceneController::handlePitchBend, this, std::placeholders::_1, std::placeholders::_2));
+        _midi.setHandleProgramChange(std::bind(&BaseSceneController::handleProgramChange, this, std::placeholders::_1, std::placeholders::_2));
+        _midi.setHandleSongPosition(std::bind(&BaseSceneController::handleSongPosition, this, std::placeholders::_1));
+        _midi.setHandleSongSelect(std::bind(&BaseSceneController::handleSongSelect, this, std::placeholders::_1));
+        _midi.setHandleSystemExclusive(std::bind(&BaseSceneController::handleSysEx, this, std::placeholders::_1, std::placeholders::_2));
+        _midi.setHandleSystemReset(std::bind(&BaseSceneController::handleSystemReset, this));
+        _midi.setHandleTuneRequest(std::bind(&BaseSceneController::handleTuneRequest, this));
+        _midi.setHandleAfterTouchChannel(std::bind(&BaseSceneController::handleAfterTouchChannel, this, std::placeholders::_1, std::placeholders::_2));
+        _midi.setHandleAfterTouchPoly(std::bind(&BaseSceneController::handleAfterTouchPoly, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+        _midi.setHandleTimeCodeQuarterFrame(std::bind(&BaseSceneController::handleMtcQuarterFrame, this, std::placeholders::_1));
     }
 
-    virtual ~SceneController() {
-    }
+    ~SceneController() override = default;
 
-    virtual void Process() override {
+    void Process() override {
         _button.update();
         _button2.update();
         _button3.update();
@@ -393,11 +438,11 @@ public:
         }
     }
 
-    virtual void FillRect(int x, int y, int width, int height, uint16_t color) override {
+    void FillRect(int x, int y, int width, int height, uint16_t color) override {
         _display.fillRect(x, y, width, height, color);
     };
 
-    virtual void DrawPixel(int x, int y, uint16_t color) override {
+    void DrawPixel(int x, int y, uint16_t color) override {
         _display.Pixel(x, y, color);
     };
 
@@ -419,6 +464,7 @@ protected:
     TButton &_button3;
     Encoder &_encoderUpDown;
     Encoder &_encoderLeftRight;
+    TMidi &_midi;
     bool _currentSceneNeedsInit = true;
     std::stack< TeensyControl* > _dialogs;
     // encoder stuff
