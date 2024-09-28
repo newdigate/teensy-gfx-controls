@@ -4,6 +4,7 @@
 #include <stack>
 #include <functional>
 #include "teensy_controls.h"
+#include "MIDI.h"
 
 class BaseScene {
 public:
@@ -234,31 +235,31 @@ public:
         _scenes[_currentScene]->HandleControlChange(channel, data1, data2);
     }
 
-    virtual void handleNoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) {
+    virtual void NoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) {
         MidiNoteUpDown(true, channel, pitch, velocity);
     }
-    virtual void handleNoteOff(uint8_t channel, uint8_t pitch, uint8_t velocity) {
+    virtual void NoteOff(uint8_t channel, uint8_t pitch, uint8_t velocity) {
         MidiNoteUpDown(false, channel, pitch, velocity);
     }
-    virtual void handleAfterTouchPoly(byte inChannel, byte inNote, byte inValue) {}
-    virtual void handleControlChange(byte inChannel, byte inNumber, byte inValue) {
+    virtual void AfterTouchPoly(byte inChannel, byte inNote, byte inValue) {}
+    virtual void ControlChange(byte inChannel, byte inNumber, byte inValue) {
         MidiControlChange(inChannel, inNumber, inValue);
     }
-    virtual void handleProgramChange(byte inChannel, byte inNumber) {}
-    virtual void handleAfterTouchChannel(byte inChannel, byte inPressure) {}
-    virtual void handlePitchBend(byte inChannel, int inValue) {}
-    virtual void handleSysEx(byte* inData, unsigned inSize) {}
-    virtual void handleMtcQuarterFrame(byte inData) {}
-    virtual void handleSongPosition(unsigned inBeats) {}
-    virtual void handleSongSelect(byte inSongNumber) {}
-    virtual void handleTuneRequest() {}
-    virtual void handleClock() {}
-    virtual void handleStart() {}
-    virtual void handleContinue() {}
-    virtual void handleStop() {}
-    virtual void handleActiveSensing() {}
-    virtual void handleSystemReset() {}
-    virtual void handleTick() {}
+    virtual void ProgramChange(byte inChannel, byte inNumber) {}
+    virtual void AfterTouchChannel(byte inChannel, byte inPressure) {}
+    virtual void PitchBend(byte inChannel, int inValue) {}
+    virtual void SysEx(byte* inData, unsigned inSize) {}
+    virtual void MtcQuarterFrame(byte inData) {}
+    virtual void SongPosition(unsigned inBeats) {}
+    virtual void SongSelect(byte inSongNumber) {}
+    virtual void TuneRequest() {}
+    virtual void Clock() {}
+    virtual void Start() {}
+    virtual void Continue() {}
+    virtual void Stop() {}
+    virtual void ActiveSensing() {}
+    virtual void SystemReset() {}
+    virtual void Tick() {}
 
 protected:
     bool _active = false;
@@ -268,7 +269,7 @@ protected:
     bool _menuEnabled;
 };
 
-template< typename TDisplay, typename TEncoder, typename TButton, typename TMidi >
+template< class TDisplay, class TEncoder, class TButton, class TMidiTransport>
 class SceneController : public BaseSceneController {
 public:
     SceneController(TDisplay &display,
@@ -277,35 +278,39 @@ public:
         TButton &button,
         TButton &button2,
         TButton &button3,
-        TMidi &midi) : _display(display),
+        midi::MidiInterface<TMidiTransport> &midi) :
+                        _display(display),
                        _button(button),
                        _button2(button2),
                        _button3(button3),
                        _encoderUpDown(encoderUpDown),
                        _encoderLeftRight(encoderLeftRight),
                        _midi(midi) {
-        _midi.setHandleNoteOn( [] (uint8_t channel, uint8_t pitch, uint8_t velocity) {});  // Put only the name of the function
-        _midi.setHandleNoteOff(std::bind(&BaseSceneController::handleNoteOff, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        _midi.setHandleClock(std::bind(&BaseSceneController::handleClock, this));
-        _midi.setHandleContinue(std::bind(&BaseSceneController::handleContinue, this));
-        _midi.setHandleStart(std::bind(&BaseSceneController::handleStart, this));
-        _midi.setHandleStop(std::bind(&BaseSceneController::handleStop, this));
-        _midi.setHandleTick(std::bind(&BaseSceneController::handleTick, this));
-        _midi.setHandleActiveSensing(std::bind(&BaseSceneController::handleActiveSensing, this));
-        _midi.setHandleControlChange(std::bind(&BaseSceneController::handleControlChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        _midi.setHandlePitchBend(std::bind(&BaseSceneController::handlePitchBend, this, std::placeholders::_1, std::placeholders::_2));
-        _midi.setHandleProgramChange(std::bind(&BaseSceneController::handleProgramChange, this, std::placeholders::_1, std::placeholders::_2));
-        _midi.setHandleSongPosition(std::bind(&BaseSceneController::handleSongPosition, this, std::placeholders::_1));
-        _midi.setHandleSongSelect(std::bind(&BaseSceneController::handleSongSelect, this, std::placeholders::_1));
-        _midi.setHandleSystemExclusive(std::bind(&BaseSceneController::handleSysEx, this, std::placeholders::_1, std::placeholders::_2));
-        _midi.setHandleSystemReset(std::bind(&BaseSceneController::handleSystemReset, this));
-        _midi.setHandleTuneRequest(std::bind(&BaseSceneController::handleTuneRequest, this));
-        _midi.setHandleAfterTouchChannel(std::bind(&BaseSceneController::handleAfterTouchChannel, this, std::placeholders::_1, std::placeholders::_2));
-        _midi.setHandleAfterTouchPoly(std::bind(&BaseSceneController::handleAfterTouchPoly, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-        _midi.setHandleTimeCodeQuarterFrame(std::bind(&BaseSceneController::handleMtcQuarterFrame, this, std::placeholders::_1));
+        _instances.push_back(this);
+        _midi.setHandleNoteOn( handleNoteOn );
+        _midi.setHandleNoteOff( handleNoteOff );
+        _midi.setHandleClock(  handleClock );
+        _midi.setHandleContinue( handleContinue );
+        _midi.setHandleStart( handleStart );
+        _midi.setHandleStop(handleStop );
+        _midi.setHandleTick(handleTick);
+        _midi.setHandleActiveSensing(handleActiveSensing);
+        _midi.setHandleControlChange(handleControlChange);
+        _midi.setHandlePitchBend(handlePitchBend);
+        _midi.setHandleProgramChange(handleProgramChange);
+        _midi.setHandleSongPosition(handleSongPosition);
+        _midi.setHandleSongSelect(handleSongSelect);
+        _midi.setHandleSystemExclusive(handleSysEx);
+        _midi.setHandleSystemReset(handleSystemReset);
+        _midi.setHandleTuneRequest(handleTuneRequest);
+        _midi.setHandleAfterTouchChannel(handleAfterTouchChannel);
+        _midi.setHandleAfterTouchPoly(handleAfterTouchPoly);
+        _midi.setHandleTimeCodeQuarterFrame(handleMtcQuarterFrame);
     }
 
-    ~SceneController() override = default;
+    ~SceneController() override {
+        _instances.erase(std::remove(_instances.begin(), _instances.end(), this), _instances.end());
+    };
 
     void Process() override {
         _button.update();
@@ -457,6 +462,101 @@ public:
         }
     }
 
+    static void handleNoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) {
+        for (auto instance: _instances) {
+            instance->NoteOn(channel, pitch, velocity);
+        }
+    }
+    static void handleNoteOff(uint8_t channel, uint8_t pitch, uint8_t velocity) {
+        for (auto instance: _instances) {
+            instance->NoteOff(channel, pitch, velocity);
+        }
+    }
+    static void handleAfterTouchPoly(byte inChannel, byte inNote, byte inValue) {
+        for (auto instance: _instances) {
+            instance->AfterTouchPoly(inChannel, inNote, inValue);
+        }
+    }
+    static void handleControlChange(byte inChannel, byte inNumber, byte inValue) {
+        for (auto instance: _instances) {
+            instance->ControlChange(inChannel, inNumber, inValue);
+        }
+    }
+    static void handleProgramChange(byte inChannel, byte inNumber) {
+        for (auto instance: _instances) {
+            instance->ProgramChange(inChannel, inNumber);
+        }
+    }
+    static void handleAfterTouchChannel(byte inChannel, byte inPressure) {
+        for (auto instance: _instances) {
+            instance->AfterTouchChannel( inChannel, inPressure);
+        }
+    }
+    static void handlePitchBend(byte inChannel, int inValue) {
+        for (auto instance: _instances) {
+            instance->PitchBend(inChannel, inValue);
+        }
+    }
+    static void handleSysEx(byte* inData, unsigned inSize) {
+        for (auto instance: _instances) {
+            instance->SysEx(inData, inSize);
+        }
+    }
+    static void handleMtcQuarterFrame(byte inData) {
+        for (auto instance: _instances) {
+            instance->MtcQuarterFrame(inData);
+        }
+    }
+    static void handleSongPosition(unsigned inBeats) {
+        for (auto instance: _instances) {
+            instance->SongPosition(inBeats);
+        }
+    }
+    static void handleSongSelect(byte inSongNumber) {
+        for (auto instance: _instances) {
+            instance->SongSelect(inSongNumber);
+        }
+    }
+    static void handleTuneRequest() {
+        for (auto instance: _instances) {
+            instance->TuneRequest();
+        }
+    }
+    static void handleClock() {
+        for (auto instance: _instances) {
+            instance->Clock();
+        }
+    }
+    static void handleStart() {
+        for (auto instance: _instances) {
+            instance->Start();
+        }
+    }
+    static void handleContinue() {
+        for (auto instance: _instances) {
+            instance->Continue();
+        }
+    }
+    static void handleStop() {
+        for (auto instance: _instances) {
+            instance->Stop();
+        }
+    }
+    static void handleActiveSensing() {
+        for (auto instance: _instances) {
+            instance->ActiveSensing();
+        }
+    }
+    static void handleSystemReset() {
+            for (auto instance: _instances) {
+            instance->SystemReset();
+        }
+    }
+    static void handleTick() {
+        for (auto instance: _instances) {
+            instance->Tick();
+        }
+    }
 protected:
     TDisplay &_display;
     TButton &_button;
@@ -464,12 +564,16 @@ protected:
     TButton &_button3;
     Encoder &_encoderUpDown;
     Encoder &_encoderLeftRight;
-    TMidi &_midi;
+    midi::MidiInterface<TMidiTransport>&_midi;
     bool _currentSceneNeedsInit = true;
     std::stack< TeensyControl* > _dialogs;
     // encoder stuff
     long Position = 0, oldPosition = 0;
     long PositionY = 0, oldPositionY = 0;
+    static std::vector<SceneController*> _instances;
 };
+
+template< class TDisplay, class TEncoder, class TButton, class TMidiTransport>
+std::vector<SceneController<TDisplay, TEncoder, TButton, TMidiTransport>*> SceneController<TDisplay, TEncoder, TButton, TMidiTransport>::_instances;
 
 #endif  //TEENSY_SCENE_CONTROLLER_SCENECONTROLLER_H

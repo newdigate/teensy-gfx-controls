@@ -10,6 +10,9 @@
 #include "teensy_controls.h"
 #include "TFTPianoDisplay.h"
 
+#include "MIDI.h"
+#include "RtMidiMIDI.h"
+#include "RtMidiTransport.h"
 #define DEBOUNCE    150
 
 //Scene(const uint16_t * iconOn, const uint16_t * iconOff, unsigned int iconWidth, unsigned int iconHeight) 
@@ -29,11 +32,13 @@ Button button3 = Button();
 Encoder encoderLeftRight;
 Encoder encoderUpDown;
 
-typedef SceneController< VirtualView, Encoder, Button> MySceneController;
+MIDI_CREATE_RTMIDI_INSTANCE(RtMidiMIDI, rtMIDI,  MIDI);
+
+typedef SceneController< VirtualView, Encoder, Button, RtMidiTransport<RtMidiMIDI>> MySceneController;
 
 st7735_opengl<Encoder, Button> Display(true, 20, &encoderLeftRight, &encoderUpDown, &button, &button2, &button3);
 VirtualView virtualDisplay(Display, 0, 0, 128, 128);
-MySceneController sceneController(virtualDisplay, encoderLeftRight, encoderUpDown, button, button2, button3);
+MySceneController sceneController(virtualDisplay, encoderLeftRight, encoderUpDown, button, button2, button3, MIDI);
 
 void hideDialog(int buttonIndex);
 

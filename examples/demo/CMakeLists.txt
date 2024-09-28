@@ -14,12 +14,12 @@ add_definitions(-DARDUINO=146)
 
 add_executable(demo basic.cpp)
 
-target_link_libraries(demo ${teensy_x86_stubs_LIBS})
-target_link_libraries(demo ${teensy_x86_bounce2_stubs_LIBS})
-target_link_libraries(demo ${teensy_x86_encoder_stubs_LIBS})
-target_link_libraries(demo ${teensy_st7735_linux_stubs_LIBS})
-target_link_libraries(demo ${teensy_st7735_linux_extras_opengl_LIBS})
-target_link_libraries(demo ${teensy_gfx_LIBS})
+target_link_libraries(demo teensy_x86_stubs)
+target_link_libraries(demo teensy_x86_bounce2_stubs)
+target_link_libraries(demo teensy_x86_encoder_stubs)
+target_link_libraries(demo teensy_st7735_linux_stubs)
+target_link_libraries(demo teensy_st7735_linux_opengl)
+target_link_libraries(demo teensy_gfx)
 
 include(../../cmake/opengl.cmake)
 target_link_libraries(demo ${LIBS})
