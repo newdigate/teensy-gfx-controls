@@ -15,7 +15,7 @@ target_link_libraries(view_example rtmidi)
 target_link_libraries(view_example teensy_x86_midi_stubs)
 target_link_libraries(view_example teensy_x86_midi_stubs_rtmidi)
 target_link_libraries(view_example teensy_st7735_linux_stubs)
-target_link_libraries(view_example teensy_st7735_linux_extras_opengl)
+target_link_libraries(view_example teensy_st7735_linux_opengl)
 target_link_libraries(view_example teensy_gfx)
 
 include(opengl.cmake)

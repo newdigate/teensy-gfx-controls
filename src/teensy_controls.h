@@ -305,10 +305,9 @@ public:
             return;
         _children[_selectedIndex]->ButtonDown(buttonNumber);
         NeedsUpdate = true;   
-        return;
     }
 
-    int GetSelectedIndex() {
+    int GetSelectedIndex() const {
         return _selectedIndex;
     }
     bool NeedsUpdate = true;
@@ -389,12 +388,12 @@ private:
 class TeensyStringMenuItem : public TeensyMenuItem {
 public:
     TeensyStringMenuItem(
-            View &view,
+            TeensyMenu &menu,
             const String &label,
             const std::function<void(uint8_t buttonNumber)>& buttonDownEvent) :
-        TeensyMenuItem (view, std::bind(&TeensyStringMenuItem::MenuItemUpdate, this), 10, nullptr, nullptr, nullptr, buttonDownEvent), //std::bind(&TeensyStringMenuItem::ButtonDown, this, std::placeholders::_1)),
+        TeensyMenuItem (menu, std::bind(&TeensyStringMenuItem::MenuItemUpdate, this), 10, nullptr, nullptr, nullptr, buttonDownEvent), //std::bind(&TeensyStringMenuItem::ButtonDown, this, std::placeholders::_1)),
         _label(label),
-        _buttonDownEvent(buttonDownEvent)
+        buttonDownEvent(buttonDownEvent)
     {
     }
 
@@ -406,14 +405,14 @@ public:
     }
 
     void ButtonDown(unsigned char buttonNumber) override {
-        if (_buttonDownEvent != nullptr) {
-            return _buttonDownEvent(buttonNumber);
+        if (buttonDownEvent) {
+            return buttonDownEvent(buttonNumber);
         }
     }
 
 private:
     const String &_label;
-    const std::function<void(uint8_t buttonNumber)> &_buttonDownEvent;
+    std::function<void(int)> buttonDownEvent;
 };
 
 class TeensyMenuController {

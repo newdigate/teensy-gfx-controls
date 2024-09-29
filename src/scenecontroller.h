@@ -178,7 +178,11 @@ public:
     }
 
     void SetCurrentSceneIndex(int scene) {
-        _currentScene = scene;
+        if (_currentScene != scene && scene > -1 && scene < _scenes.size()) {
+            _previousScene = _currentScene;
+            _currentScene = scene;
+            _currentSceneNeedsInit = true;
+        }
     }
 
     void Update() {
