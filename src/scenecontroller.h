@@ -461,7 +461,7 @@ public:
     }
 
     ~SceneController() override {
-        _instances.erase(std::remove(_instances.begin(), _instances.end(), this), _instances.end());
+       // _instances.erase(std::remove(_instances.begin(), _instances.end(), this), _instances.end());
     };
 
     void Process() override {
@@ -510,7 +510,7 @@ public:
         }
 
         bool left = false, right = false, up = false, down = false;
-        Position = _encoderLeftRight.read();
+        Position = _encoderLeftRight.read() / 4;
         if ((Position - oldPosition) < 0) {
             left = true;
         }
@@ -518,7 +518,7 @@ public:
             right = true;
         }
 
-        PositionY = _encoderUpDown.read();
+        PositionY = _encoderUpDown.read() / 4;
         if ((PositionY - oldPositionY) > 0) {
             down = true;
         }
