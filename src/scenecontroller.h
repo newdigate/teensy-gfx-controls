@@ -606,6 +606,7 @@ public:
 
 
     static void handleNoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) {
+        Serial.println("midi note on");
         for (auto instance: _instances) {
             instance->NoteOn(channel, pitch, velocity);
         }
