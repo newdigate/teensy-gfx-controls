@@ -145,7 +145,8 @@ TeensyButton button_play(button_bar, 16, 16, 0, 0);
 TeensyButton button_pause(button_bar, 16, 16, 0, 0);
 TeensyButton button_stop(button_bar, 16, 16, 0, 0);
 TeensyButton button_fastfwd(button_bar, 16, 16, 0, 0);
-
+TeensyButtonRecord button_record(button_bar);
+TeensyButtonRecord button_record2(button_bar);
 Scene *playScene = new Scene(virtualDisplay, 128, 128, 0, 0,
                         _bmp_play_on, 
                         _bmp_play_off, 
@@ -155,6 +156,18 @@ Scene *playScene = new Scene(virtualDisplay, 128, 128, 0, 0,
                         },
                         [] {
                           virtualDisplay.fillScreen(ST7735_BLACK);
+                        }, [] () {},
+                        [](unsigned buttonIndex) {
+                          button_bar.ButtonDown(buttonIndex);
+                        },
+                        [] (bool forward) {
+                          if (forward)
+                            button_bar.IncreaseSelectedIndex();
+                          else
+                            button_bar.DecreaseSelectedIndex();
+                        },
+                        [] (bool forward) {
+                          button_bar.ValueScroll(forward);
                         });
 
 void setup() {
@@ -192,12 +205,18 @@ void setup() {
   Display.fillScreen(ST7735_BLACK);
 
   button_play.SetDepressed(true);
+  //button_stop.SetHighlighted(true);
+  button_record2.SetRecording(true);
 
   button_bar.AddButton(&button_rewind);
+  button_bar.AddButton(&button_record);
+  button_bar.AddButton(&button_record2);
+
   button_bar.AddButton(&button_play);
   button_bar.AddButton(&button_pause);
   button_bar.AddButton(&button_stop);
   button_bar.AddButton(&button_fastfwd);
+
 
   sceneController.Init();
   sceneController.AddScene(settingsScene);
