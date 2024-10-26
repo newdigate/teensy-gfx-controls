@@ -14,7 +14,7 @@
 #include "RtMidiMIDI.h"
 #include "RtMidiTransport.h"
 #define DEBOUNCE    150
-
+#include "buttons.h"
 //Scene(const uint16_t * iconOn, const uint16_t * iconOff, unsigned int iconWidth, unsigned int iconHeight) 
 
 // MOVED to icons.h:
@@ -139,12 +139,23 @@ Scene *editScene = new Scene(virtualDisplay, 128, 128, 0, 0,
                         [] { }, 
                         [] { virtualDisplay.fillScreen(ST7735_RED); });
 
+TeensyButtonBar button_bar(virtualDisplay, 128, 16, 0, 0);
+TeensyButton button_rewind(button_bar, 16, 16, 0, 0);
+TeensyButton button_play(button_bar, 16, 16, 0, 0);
+TeensyButton button_pause(button_bar, 16, 16, 0, 0);
+TeensyButton button_stop(button_bar, 16, 16, 0, 0);
+TeensyButton button_fastfwd(button_bar, 16, 16, 0, 0);
+
 Scene *playScene = new Scene(virtualDisplay, 128, 128, 0, 0,
                         _bmp_play_on, 
                         _bmp_play_off, 
                         16, 16,
-                        [] { }, 
-                        [] { virtualDisplay.fillScreen(ST7735_GREEN); });                
+                        [] {
+                          button_bar.Update();
+                        },
+                        [] {
+                          virtualDisplay.fillScreen(ST7735_BLACK);
+                        });
 
 void setup() {
 
@@ -180,6 +191,15 @@ void setup() {
 
   Display.fillScreen(ST7735_BLACK);
 
+  button_play.SetDepressed(true);
+
+  button_bar.AddButton(&button_rewind);
+  button_bar.AddButton(&button_play);
+  button_bar.AddButton(&button_pause);
+  button_bar.AddButton(&button_stop);
+  button_bar.AddButton(&button_fastfwd);
+
+  sceneController.Init();
   sceneController.AddScene(settingsScene);
   sceneController.AddScene(editScene);
   sceneController.AddScene(playScene);

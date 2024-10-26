@@ -23,7 +23,7 @@ ENDIF()
 
 add_subdirectory(src)
 
-if (DEFINED BUILD_EXAMPLE)
+if (BUILD_EXAMPLE)
     if (DEFINED BUILD_FOR_LINUX)
         DeclareAndFetch(teensy_x86_sd_stubs             git@github.com:newdigate/teensy-x86-sd-stubs noinstall src)
         DeclareAndFetch(teensy_audio_x86_stubs          git@github.com:newdigate/teensy-audio-x86-stubs noinstall "src;extras/soundio/src")
