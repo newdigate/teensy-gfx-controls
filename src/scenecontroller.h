@@ -438,7 +438,7 @@ public:
                        _encoderUpDown(encoderUpDown),
                        _encoderLeftRight(encoderLeftRight),
                        _midi(midi) {
-        _instances.push_back(this);
+
         _midi.setHandleNoteOn( handleNoteOn );
         _midi.setHandleNoteOff( handleNoteOff );
         _midi.setHandleClock(  handleClock );
@@ -603,7 +603,11 @@ public:
         _display.Pixel(x, y, color);
     };
 
-
+    void Init() {
+        Serial.print("SceneController init: ");
+        _instances.push_back(this);
+        Serial.println(_instances.size());
+    }
 
     static void handleNoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) {
         Serial.println("midi note on");
