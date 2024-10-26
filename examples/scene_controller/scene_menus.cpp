@@ -140,11 +140,11 @@ Scene *editScene = new Scene(virtualDisplay, 128, 128, 0, 0,
                         [] { virtualDisplay.fillScreen(ST7735_RED); });
 
 TeensyButtonBar button_bar(virtualDisplay, 128, 16, 0, 0);
-TeensyButton button_rewind(button_bar, 16, 16, 0, 0);
-TeensyButton button_play(button_bar, 16, 16, 0, 0);
-TeensyButton button_pause(button_bar, 16, 16, 0, 0);
-TeensyButton button_stop(button_bar, 16, 16, 0, 0);
-TeensyButton button_fastfwd(button_bar, 16, 16, 0, 0);
+TeensyButtonRewind button_rewind(button_bar);
+TeensyButtonPlay button_play(button_bar);
+TeensyButtonPause button_pause(button_bar);
+TeensyButtonStop button_stop(button_bar);
+TeensyButtonFastfwd button_fastfwd(button_bar);
 TeensyButtonRecord button_record(button_bar);
 TeensyButtonRecord button_record2(button_bar);
 Scene *playScene = new Scene(virtualDisplay, 128, 128, 0, 0,
@@ -155,6 +155,7 @@ Scene *playScene = new Scene(virtualDisplay, 128, 128, 0, 0,
                           button_bar.Update();
                         },
                         [] {
+                          button_bar.ForceRedraw();
                           virtualDisplay.fillScreen(ST7735_BLACK);
                         }, [] () {},
                         [](unsigned buttonIndex) {

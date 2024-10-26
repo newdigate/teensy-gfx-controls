@@ -27,6 +27,9 @@ public:
             _needsRedraw = true;
         }
     }
+    void ForceRedraw() {
+        _needsRedraw = true;
+    }
 
     virtual void Update() {
       if (_needsRedraw) {
@@ -46,8 +49,8 @@ public:
           _display.drawFastVLine(_left + _width - 1, _top + 1, _height - 3, color1 );
 
           if (_highlighted) {
-              _display.fillRect(_left + 2, _top + 2, _width -4, _height-5, 0x255A );
-              _display.drawRoundRect(_left + 1, _top + 1, _width -2, _height-3, 2, 0x255A );
+              _display.fillRoundRect(_left + 2, _top + 2, _width -4, _height-5, 2, 0x255A );
+             // _display.drawRoundRect(_left + 1, _top + 1, _width -2, _height-3, 2, 0x255A );
           }
           DrawButton();
 
@@ -131,6 +134,94 @@ private:
     bool _isRecording;
 };
 
+class TeensyButtonStop : public TeensyButton {
+public:
+    TeensyButtonStop(View& view) : TeensyButton(view, 16, 16, 0, 0)
+    {
+    }
+
+    void DrawButton() override {
+        _display.fillRect(_left + 4, _top + 4,  _width-8, _height-9, 0);
+    }
+};
+
+class TeensyButtonPause : public TeensyButton {
+public:
+    TeensyButtonPause(View& view) : TeensyButton(view, 16, 16, 0, 0)
+    {
+    }
+
+    void DrawButton() override {
+        _display.fillRect(_left + 3, _top + 4,  4, _height-9, 0);
+        _display.fillRect(_left + 9, _top + 4,  4, _height-9, 0);
+    }
+};
+
+
+class TeensyButtonPlay : public TeensyButton {
+public:
+    TeensyButtonPlay(View& view) : TeensyButton(view, 16, 16, 0, 0)
+    {
+    }
+
+    void DrawButton() override {
+        const int16_t left = _left + 6;
+        const int16_t top = _top + 3;
+        _display.fillTriangle(
+            left, top,
+            left, top + 8,
+            left + 4, top + 4,
+            0);
+    }
+};
+
+class TeensyButtonRewind : public TeensyButton {
+public:
+    TeensyButtonRewind(View& view) : TeensyButton(view, 16, 16, 0, 0)
+    {
+    }
+
+    void DrawButton() override {
+        int16_t left = _left + 7;
+        const int16_t top = _top + 3;
+        _display.fillTriangle(
+            left, top,
+            left, top + 8,
+            left - 4, top + 4,
+            0);
+        left += 5;
+        _display.fillTriangle(
+            left, top,
+            left, top + 8,
+            left - 4, top + 4,
+            0);
+    }
+};
+
+class TeensyButtonFastfwd : public TeensyButton {
+public:
+    TeensyButtonFastfwd(View& view) : TeensyButton(view, 16, 16, 0, 0)
+    {
+    }
+
+    void DrawButton() override {
+        int16_t left = _left + 3;
+        const int16_t top = _top + 3;
+        _display.fillTriangle(
+            left, top,
+            left, top + 8,
+            left + 4, top + 4,
+            0);
+        left += 5;
+        _display.fillTriangle(
+            left, top,
+            left, top + 8,
+            left + 4, top + 4,
+            0);
+    }
+};
+
+
 class TeensyButtonBar : public TeensyControl {
 public:
     TeensyButtonBar(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y) :
@@ -181,6 +272,13 @@ public:
             _selectedIndex -= 1;
             auto *selectedButton = dynamic_cast<TeensyButton*>(_children[_selectedIndex]);
             selectedButton->SetHighlighted(true);
+        }
+    }
+
+    void ForceRedraw() {
+        for(auto &child:_children) {
+            TeensyButton *button = dynamic_cast<TeensyButton*>(child);
+            button->ForceRedraw();
         }
     }
 
