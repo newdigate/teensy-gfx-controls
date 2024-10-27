@@ -101,10 +101,10 @@ public:
     void Update(unsigned milliseconds) override {
         TeensyButton::Update(milliseconds);
         if (!_isRecording) return;
-        if (unsigned currentMillis = millis(); currentMillis > _lastMilliseconds + 500) {
+        if (milliseconds > _lastMilliseconds + 500) {
             _indicatorOn = !_indicatorOn;
             _needsRedraw = true;
-            _lastMilliseconds = currentMillis;
+            _lastMilliseconds = milliseconds;
         }
     }
 

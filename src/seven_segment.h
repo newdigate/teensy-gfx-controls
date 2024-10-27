@@ -180,6 +180,7 @@ protected:
 };
 
 class TeensySevenSegmentSeparator : public TeensySevenSegment {
+public:
     TeensySevenSegmentSeparator(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y) :
         TeensySevenSegment (view, width, height, x, y)
     {
@@ -188,6 +189,23 @@ class TeensySevenSegmentSeparator : public TeensySevenSegment {
     virtual ~TeensySevenSegmentSeparator() {
     }
 
+    void Update(unsigned millis) override {
+        if (millis > _lastMilliseconds + 500) {
+            _indictorOn = !_indictorOn;
+            _needsRedraw = true;
+            _lastMilliseconds = millis;
+        }
+        if (_needsRedraw) {
+            const int16_t point1x = _left + _width/2 -1,               point1y = _top + _height/4;
+            const int16_t point2x = _left + _width/2 - 1,              point2y = _top + _height*3/4;
+            _display.drawFastVLine(point1x, point1y, 2, _indictorOn? colors[2]:colors[1]);
+            _display.drawFastVLine(point2x, point2y, 2, _indictorOn? colors[2]:colors[1]);
+            _needsRedraw = false;
+        }
+    }
+private:
+    bool _indictorOn = false;
+    unsigned _lastMilliseconds = 0;
 };
 
 class TeensyTimeIndicator : public TeensyControl {
@@ -199,9 +217,19 @@ public:
         _highlighted(false),
         _milliseconds(0)
     {
-        for (int i=0; i<_numSegments; i++) {
-            AddSegment();
-        }
+        AddSegment();
+        AddSegment();
+        AddSegment();
+        AddSegment();
+        AddSeparator();
+        AddSegment();
+        AddSegment();
+        AddSeparator();
+        AddSegment();
+        AddSegment();
+        AddSeparator();
+        AddSegment();
+        AddSegment();
     }
 
     virtual ~TeensyTimeIndicator() {
@@ -229,9 +257,8 @@ public:
             uint8_t millisHundredths = mseconds / 10;
             uint8_t digits[] = {hoursThousands, hoursHundreds, hoursTens, hoursOnes, minutesTens, minutesOnes, secondsTens, secondsOnes, millisTenths, millisHundredths};
             uint8_t index = 0;
-            for(auto && child:_children) {
-                auto && seven_segment = dynamic_cast<TeensySevenSegment*>(child);
-                seven_segment->SetDigit(digits[index]);
+            for(auto && child:_segments) {
+                child->SetDigit(digits[index]);
                 index++;
             }
         }
@@ -260,10 +287,19 @@ protected:
     bool _highlighted;
     uint16_t _offsetx;
     unsigned _milliseconds;
+    std::vector<TeensySevenSegment*> _segments;
 
     void AddSegment() {
-        _children.push_back(new TeensySevenSegment(_display, 5, _height, _left + _offsetx, _top));
+        auto && segment = new TeensySevenSegment(_display, 5, _height, _left + _offsetx, _top);
+        _children.push_back(segment);
+        _segments.push_back(segment);
         _offsetx += 7;
+    }
+
+    void AddSeparator() {
+        auto && separator = new TeensySevenSegmentSeparator(_display, 2, _height, _left + _offsetx, _top);
+        _children.push_back(separator);
+        _offsetx += 3;
     }
 };
 #endif  //TEENSY_CONTROLS_H
