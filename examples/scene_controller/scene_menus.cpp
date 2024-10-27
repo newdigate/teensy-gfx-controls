@@ -15,6 +15,7 @@
 #include "RtMidiTransport.h"
 #define DEBOUNCE    150
 #include "buttons.h"
+#include "seven_segment.h"
 //Scene(const uint16_t * iconOn, const uint16_t * iconOff, unsigned int iconWidth, unsigned int iconHeight) 
 
 // MOVED to icons.h:
@@ -146,16 +147,33 @@ TeensyButtonPause button_pause(button_bar);
 TeensyButtonStop button_stop(button_bar);
 TeensyButtonFastfwd button_fastfwd(button_bar);
 TeensyButtonRecord button_record(button_bar);
-TeensyButtonRecord button_record2(button_bar);
+int16_t segmentx = 0;
+TeensySevenSegment s1(virtualDisplay, 5, 8, segmentx++ * 7, 24);
+TeensySevenSegment s2(virtualDisplay, 5, 8, segmentx++ * 7, 24);
+TeensySevenSegment s3(virtualDisplay, 5, 8, segmentx++ * 7, 24);
+TeensySevenSegment s4(virtualDisplay, 5, 8, segmentx++ * 7, 24);
+TeensySevenSegment s5(virtualDisplay, 5, 8, segmentx++ * 7, 24);
+TeensySevenSegment s6(virtualDisplay, 5, 8, segmentx++ * 7, 24);
+TeensySevenSegment s7(virtualDisplay, 5, 8, segmentx++ * 7, 24);
+TeensySevenSegment s8(virtualDisplay, 5, 8, segmentx++ * 7, 24);
+TeensySevenSegment s9(virtualDisplay, 5, 8, segmentx++ * 7, 24);
+TeensySevenSegment s0(virtualDisplay, 5, 8, segmentx++ * 7, 24);
+TeensySevenSegment* sevensegments[] = {&s0, &s1, &s2, &s3, &s4, &s5, &s6, &s7, &s8, &s9};
 Scene *playScene = new Scene(virtualDisplay, 128, 128, 0, 0,
                         _bmp_play_on, 
                         _bmp_play_off, 
                         16, 16,
                         [] {
                           button_bar.Update();
+                          for (auto sevensegment : sevensegments) {
+                            sevensegment->Update();
+                          }
                         },
                         [] {
                           button_bar.ForceRedraw();
+                          for (auto sevensegment : sevensegments) {
+                            sevensegment->ForceRedraw();
+                          }
                           virtualDisplay.fillScreen(ST7735_BLACK);
                         }, [] () {},
                         [](unsigned buttonIndex) {
@@ -206,13 +224,17 @@ void setup() {
   Display.fillScreen(ST7735_BLACK);
 
   button_play.SetDepressed(true);
+
+  uint8_t count = 0;
+  for (auto sevensegment : sevensegments) {
+    sevensegment->SetDigit(count);
+    count++;
+  }
+
   //button_stop.SetHighlighted(true);
-  button_record2.SetRecording(true);
 
   button_bar.AddButton(&button_rewind);
   button_bar.AddButton(&button_record);
-  button_bar.AddButton(&button_record2);
-
   button_bar.AddButton(&button_play);
   button_bar.AddButton(&button_pause);
   button_bar.AddButton(&button_stop);

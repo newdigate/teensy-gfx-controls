@@ -62,6 +62,8 @@ public:
     }
 
     virtual void ValueScroll(bool forward) {
+        _depressed = !_depressed;
+        _needsRedraw = true;
     }
 
     virtual void ButtonDown(uint8_t buttonNumber) {
@@ -118,16 +120,10 @@ public:
     }
 
     void ValueScroll(bool forward) override {
-
+        _isRecording = !_isRecording;
+        _needsRedraw = true;
     }
 
-    void IncreaseSelectedIndex() override {
-
-    }
-
-    void DecreaseSelectedIndex() override {
-
-    }
 private:
     unsigned _lastMilliseconds;
     bool _indicatorOn;
@@ -246,9 +242,14 @@ public:
         }
     }
     void ButtonDown(uint8_t buttonNumber) override {
-
+        if (_selectedIndex > 0 && _selectedIndex < _children.size()) {
+            _children[_selectedIndex]->ButtonDown(buttonNumber);
+        }
     }
     void ValueScroll(bool forward) override {
+        if (_selectedIndex > 0 && _selectedIndex < _children.size()) {
+            _children[_selectedIndex]->ValueScroll(forward);
+        }
     }
     
     void IncreaseSelectedIndex() override {
