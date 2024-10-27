@@ -23,7 +23,7 @@ public:
     virtual ~BaseScene() {
     }
 
-    virtual void Update() {}
+    virtual void Update(unsigned milliseconds) {}
     virtual void InitScreen () {}
     virtual void UninitScreen () {}
 
@@ -51,7 +51,7 @@ public:
             const uint16_t * iconOff, 
             unsigned int iconWidth, 
             unsigned int iconHeight, 
-            std::function<void()> update = nullptr, 
+            std::function<void(unsigned)> update = nullptr,
             std::function<void()> initScreen = nullptr, 
             std::function<void()> uninitScreen = nullptr, 
             std::function<void(unsigned)> buttonPressed = nullptr, 
@@ -74,7 +74,7 @@ public:
     virtual ~Scene() {
     }
 
-    void SetUpdateFunction(std::function<void()> updateFn) {
+    void SetUpdateFunction(std::function<void(unsigned)> updateFn) {
         f_update = updateFn;
     }
 
@@ -90,9 +90,9 @@ public:
         f_rotary2Changed = rotaryChangedFn;
     }
 
-    void Update() override {
+    void Update(unsigned millis) override {
         if (f_update != nullptr) {
-            f_update();
+            f_update(millis);
         }
     }
 
@@ -145,7 +145,7 @@ public:
     }
 
 private:
-    std::function<void()> f_update = nullptr;
+    std::function<void(unsigned)> f_update = nullptr;
     std::function<void()> f_initScreen = nullptr;
     std::function<void()> f_uninitScreen = nullptr;
 
@@ -185,9 +185,9 @@ public:
         }
     }
 
-    void Update() {
+    void Update(unsigned milliseconds) {
         if (!_active && _currentScene > -1) {
-            _scenes[_currentScene]->Update();
+            _scenes[_currentScene]->Update(milliseconds);
         }
     }
 
@@ -465,6 +465,7 @@ public:
     };
 
     void Process() override {
+        unsigned milliseconds = millis();
         _button.update();
         _button2.update();
         _button3.update();
@@ -485,7 +486,7 @@ public:
                     }
                     _scenes[_currentScene]->InitScreen(); 
                 } else
-                    _scenes[_currentScene]->Update(); 
+                    _scenes[_currentScene]->Update(milliseconds);
             }
             //Serial.println(_active? "Open Menu" : "Close Menu");
             return;
@@ -574,7 +575,7 @@ public:
                         _scenes[_currentScene]->Rotary2Changed(true);
                     }
                 }
-                Update();
+                Update(milliseconds);
             }
         
             if (dialogActive) {
@@ -590,7 +591,7 @@ public:
                     _dialogs.top()->ValueScroll(false);
                 }
        
-                _dialogs.top()->Update();
+                _dialogs.top()->Update(milliseconds);
             } 
         }
     }

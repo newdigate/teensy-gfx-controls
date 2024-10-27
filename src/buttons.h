@@ -31,7 +31,7 @@ public:
         _needsRedraw = true;
     }
 
-    virtual void Update() {
+    void Update(unsigned milliseconds) {
       if (_needsRedraw) {
             const uint16_t color1 = _depressed? colors[3] : colors[1];
             const uint16_t color2 = _depressed? colors[1] : colors[3];
@@ -98,8 +98,8 @@ public:
         }
     }
 
-    void Update() override {
-        TeensyButton::Update();
+    void Update(unsigned milliseconds) override {
+        TeensyButton::Update(milliseconds);
         if (!_isRecording) return;
         if (unsigned currentMillis = millis(); currentMillis > _lastMilliseconds + 500) {
             _indicatorOn = !_indicatorOn;
@@ -236,9 +236,9 @@ public:
         _children.push_back(button);
     }
 
-    void Update() override {
+    void Update(unsigned millis) override {
         for (auto && child : _children){
-            child->Update();
+            child->Update(millis);
         }
     }
     void ButtonDown(uint8_t buttonNumber) override {

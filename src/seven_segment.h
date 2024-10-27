@@ -26,7 +26,7 @@ public:
         _needsRedraw = true;
     }
 
-    virtual void Update() {
+    void Update(unsigned milliseconds) override {
         if (_needsRedraw) {
             const int16_t point1x = _left,               point1y = _top;
             const int16_t point2x = _left + _width - 1,  point2y = _top;
@@ -179,6 +179,16 @@ protected:
     uint16_t colors[4] = {0x0000,0x3A2A,0xBDF7,0xFFFF};
 };
 
+class TeensySevenSegmentSeparator : public TeensySevenSegment {
+    TeensySevenSegmentSeparator(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y) :
+        TeensySevenSegment (view, width, height, x, y)
+    {
+    }
+
+    virtual ~TeensySevenSegmentSeparator() {
+    }
+
+};
 
 class TeensyTimeIndicator : public TeensyControl {
 public:
@@ -229,12 +239,16 @@ public:
 
     void ForceRedraw() {
         _needsRedraw = true;
+        for (auto && child: _children) {
+            auto && sevenSegment = dynamic_cast<TeensySevenSegment*>(child);
+            sevenSegment->ForceRedraw();
+        }
     }
 
-    void Update() override {
+    void Update(unsigned millis) override {
         if (_needsRedraw) {
             for (auto && child: _children) {
-                child->Update();
+                child->Update(millis);
             }
             _needsRedraw = false;
         }

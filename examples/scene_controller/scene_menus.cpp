@@ -117,8 +117,8 @@ Scene *settingsScene = new Scene(virtualDisplay, 128, 128, 0, 0,
                         _bmp_settings_on, 
                         _bmp_settings_off, 
                         16, 16, 
-                        [] { 
-                              settingsMenu.Update(); 
+                        [] (unsigned millis){
+                              settingsMenu.Update(millis);
                               pianoDisplay1.drawPiano();
                         },      //            std::function<void()> update = nullptr,  
                         [] { virtualDisplay.fillScreen(ST7735_BLUE); settingsMenu.NeedsUpdate = true; pianoDisplay1.displayNeedsUpdating(); },   //             std::function<void()> initScreen = nullptr, 
@@ -137,7 +137,7 @@ Scene *editScene = new Scene(virtualDisplay, 128, 128, 0, 0,
                         _bmp_edit_on, 
                         _bmp_edit_off, 
                         16, 16,
-                        [] { }, 
+                        [](unsigned millis) { },
                         [] { virtualDisplay.fillScreen(ST7735_RED); });
 
 TeensyButtonBar button_bar(virtualDisplay, 128, 16, 0, 0);
@@ -166,23 +166,22 @@ Scene *playScene = new Scene(virtualDisplay, 128, 128, 0, 0,
                         _bmp_play_on, 
                         _bmp_play_off, 
                         16, 16,
-                        [] {
-                          button_bar.Update();
-                          time_indicator.Update();
-                          unsigned newMillis = millis();
-                          if (newMillis > oldTimeIndicatorMillis + 20) {
-                            oldTimeIndicatorMillis = newMillis;
-                            time_indicator.SetTime(newMillis - timeIndicatorMillis);
+                        [](unsigned milliseconds){
+                          button_bar.Update(milliseconds);
+                          time_indicator.Update(milliseconds);
+                          if (milliseconds > oldTimeIndicatorMillis + 20) {
+                            oldTimeIndicatorMillis = milliseconds;
+                            time_indicator.SetTime(milliseconds - timeIndicatorMillis);
                           }
-                          for (auto sevensegment : sevensegments) {
-                            sevensegment->Update();
+                          for (auto && sevensegment : sevensegments) {
+                            sevensegment->Update(milliseconds);
                           }
                         },
                         [] {
                           timeIndicatorMillis = millis();
                           button_bar.ForceRedraw();
                           time_indicator.ForceRedraw();
-                          for (auto sevensegment : sevensegments) {
+                          for (auto && sevensegment : sevensegments) {
                             sevensegment->ForceRedraw();
                           }
                           virtualDisplay.fillScreen(ST7735_BLACK);

@@ -11,7 +11,7 @@
 
 class TeensyControl : public VirtualView {
 public:
-    TeensyControl(View &view, std::function<void()> updateFn, unsigned int width, unsigned int height, unsigned int x, unsigned int y) : 
+    TeensyControl(View &view, std::function<void()> updateFn, unsigned int width, unsigned int height, unsigned int x, unsigned int y) :
         VirtualView (view,  x, y, width, height),
         f_update(updateFn),
         _children()
@@ -21,12 +21,12 @@ public:
     virtual ~TeensyControl() {
     }
 
-    virtual void Update() {
+    virtual void Update(unsigned millis) {
         if (f_update != nullptr) {
             f_update();
         }
         for (auto && child : _children){
-            child->Update();
+            child->Update(millis);
         }
     }
 
@@ -93,22 +93,22 @@ public:
         return _active;
     }
 
-    void Refresh() {
+    void Refresh(unsigned millis) {
         if (_dialogs.size() > 0){
-            _dialogs.top()->Update();
+            _dialogs.top()->Update(millis);
             return;
         }
         if (!_needsRefresh) 
             return;
         for (auto && ctrl : _controls) {
-            ctrl->Update();
+            ctrl->Update(millis);
         }
         _needsRefresh = false;
     }
 
-    void Update() {
-        Process();
-        Refresh();
+    void Update(unsigned millis) {
+        Process(millis);
+        Refresh(millis);
     }
 
     void Process() 
@@ -219,14 +219,14 @@ public:
         }
     }
 
-    void Update() override {
+    void Update(unsigned millis) override {
         if (NeedsUpdate) {
             //fillRect(0, 0, _width, _height, _colorMenuItemBackground);
             DrawBackground();
-            TeensyControl::Update();
+            TeensyControl::Update(millis);
             NeedsUpdate = false;
         }
-        TeensyControl::Update();
+        TeensyControl::Update(millis);
     }
 
     void AddControl(TeensyControl *control) {
