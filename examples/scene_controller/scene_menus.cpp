@@ -159,18 +159,29 @@ TeensySevenSegment s8(virtualDisplay, 5, 8, segmentx++ * 7, 24);
 TeensySevenSegment s9(virtualDisplay, 5, 8, segmentx++ * 7, 24);
 TeensySevenSegment s0(virtualDisplay, 5, 8, segmentx++ * 7, 24);
 TeensySevenSegment* sevensegments[] = {&s0, &s1, &s2, &s3, &s4, &s5, &s6, &s7, &s8, &s9};
+
+TeensyTimeIndicator time_indicator(virtualDisplay, 128, 8, 0, 36);
+unsigned timeIndicatorMillis = 0, oldTimeIndicatorMillis = 0;
 Scene *playScene = new Scene(virtualDisplay, 128, 128, 0, 0,
                         _bmp_play_on, 
                         _bmp_play_off, 
                         16, 16,
                         [] {
                           button_bar.Update();
+                          time_indicator.Update();
+                          unsigned newMillis = millis();
+                          if (newMillis > oldTimeIndicatorMillis + 20) {
+                            oldTimeIndicatorMillis = newMillis;
+                            time_indicator.SetTime(newMillis - timeIndicatorMillis);
+                          }
                           for (auto sevensegment : sevensegments) {
                             sevensegment->Update();
                           }
                         },
                         [] {
+                          timeIndicatorMillis = millis();
                           button_bar.ForceRedraw();
+                          time_indicator.ForceRedraw();
                           for (auto sevensegment : sevensegments) {
                             sevensegment->ForceRedraw();
                           }

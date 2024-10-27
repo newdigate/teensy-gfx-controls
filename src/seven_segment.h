@@ -179,4 +179,77 @@ protected:
     uint16_t colors[4] = {0x0000,0x3A2A,0xBDF7,0xFFFF};
 };
 
+
+class TeensyTimeIndicator : public TeensyControl {
+public:
+    TeensyTimeIndicator(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y) :
+        TeensyControl (view, nullptr, width, height, x, y),
+        _numSegments(10),
+        _needsRedraw(true),
+        _highlighted(false),
+        _milliseconds(0)
+    {
+        for (int i=0; i<_numSegments; i++) {
+            AddSegment();
+        }
+    }
+
+    virtual ~TeensyTimeIndicator() {
+    }
+
+    void SetTime(const unsigned milliseconds) {
+        if (milliseconds != _milliseconds) {
+            _milliseconds = milliseconds;
+            _needsRedraw = true;
+            unsigned seconds = milliseconds / 1000;
+            unsigned mseconds = milliseconds % 1000;
+            unsigned minutes = seconds / 60;
+            unsigned hours = minutes / 60;
+            minutes = minutes % 60;
+            seconds = seconds % 60;
+            uint8_t hoursThousands = hours / 1000;
+            uint8_t hoursHundreds = hours / 100;
+            uint8_t hoursTens = hours / 10;
+            uint8_t hoursOnes = hours % 10;
+            uint8_t minutesTens = minutes / 10;
+            uint8_t minutesOnes = minutes % 10;
+            uint8_t secondsTens = seconds / 10;
+            uint8_t secondsOnes = seconds % 10;
+            uint8_t millisTenths = mseconds / 100;
+            uint8_t millisHundredths = mseconds / 10;
+            uint8_t digits[] = {hoursThousands, hoursHundreds, hoursTens, hoursOnes, minutesTens, minutesOnes, secondsTens, secondsOnes, millisTenths, millisHundredths};
+            uint8_t index = 0;
+            for(auto && child:_children) {
+                auto && seven_segment = dynamic_cast<TeensySevenSegment*>(child);
+                seven_segment->SetDigit(digits[index]);
+                index++;
+            }
+        }
+    }
+
+    void ForceRedraw() {
+        _needsRedraw = true;
+    }
+
+    void Update() override {
+        if (_needsRedraw) {
+            for (auto && child: _children) {
+                child->Update();
+            }
+            _needsRedraw = false;
+        }
+    }
+
+protected:
+    uint8_t _numSegments;
+    bool _needsRedraw;
+    bool _highlighted;
+    uint16_t _offsetx;
+    unsigned _milliseconds;
+
+    void AddSegment() {
+        _children.push_back(new TeensySevenSegment(_display, 5, _height, _left + _offsetx, _top));
+        _offsetx += 7;
+    }
+};
 #endif  //TEENSY_CONTROLS_H
