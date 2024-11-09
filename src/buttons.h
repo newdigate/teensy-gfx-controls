@@ -289,4 +289,37 @@ protected:
 
 };
 
+
+class TeensyMediaButtonBar : public TeensyButtonBar {
+public:
+    TeensyMediaButtonBar(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y) :
+                            TeensyButtonBar (view, width, height, x, y),
+                            button_rewind(*this),
+                            button_play(*this),
+                            button_pause(*this),
+                            button_stop(*this),
+                            button_fastfwd(*this),
+                            button_record(*this)
+    {
+    }
+
+    virtual ~TeensyMediaButtonBar() {
+    }
+
+    void Init() {
+        AddButton(&button_rewind);
+        AddButton(&button_play);
+        AddButton(&button_pause);
+        AddButton(&button_stop);
+        AddButton(&button_fastfwd);
+        AddButton(&button_record);
+    }
+protected:
+    TeensyButtonRewind button_rewind;
+    TeensyButtonPlay button_play;
+    TeensyButtonPause button_pause;
+    TeensyButtonStop button_stop;
+    TeensyButtonFastfwd button_fastfwd;
+    TeensyButtonRecord button_record;
+};
 #endif  //TEENSY_CONTROLS_H

@@ -111,7 +111,7 @@ public:
         Refresh(millis);
     }
 
-    void Process() 
+    void Process(unsigned millis)
     {
         {
             bool left = false, right = false, up = false, down = false;
