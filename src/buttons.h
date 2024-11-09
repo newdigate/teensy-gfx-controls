@@ -294,6 +294,7 @@ class TeensyMediaButtonBar : public TeensyButtonBar {
 public:
     TeensyMediaButtonBar(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y) :
                             TeensyButtonBar (view, width, height, x, y),
+                            _initialized(false),
                             button_rewind(*this),
                             button_play(*this),
                             button_pause(*this),
@@ -307,14 +308,18 @@ public:
     }
 
     void Init() {
-        AddButton(&button_rewind);
-        AddButton(&button_play);
-        AddButton(&button_pause);
-        AddButton(&button_stop);
-        AddButton(&button_fastfwd);
-        AddButton(&button_record);
+        if (!_initialized) {
+            _initialized = true;
+            AddButton(&button_rewind);
+            AddButton(&button_play);
+            AddButton(&button_pause);
+            AddButton(&button_stop);
+            AddButton(&button_fastfwd);
+            AddButton(&button_record);
+        }
     }
 protected:
+    bool _initialized;
     TeensyButtonRewind button_rewind;
     TeensyButtonPlay button_play;
     TeensyButtonPause button_pause;
