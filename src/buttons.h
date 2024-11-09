@@ -316,7 +316,8 @@ public:
             AddButton(&button_stop);
             AddButton(&button_fastfwd);
             AddButton(&button_record);
-        }
+        } else
+            ForceRedraw();
     }
 protected:
     bool _initialized;
