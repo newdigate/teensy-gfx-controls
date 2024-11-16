@@ -23,13 +23,10 @@ public:
     virtual ~BaseScene() {
     }
 
-    virtual void Update(unsigned milliseconds) {}
     virtual void InitScreen () {}
     virtual void UninitScreen () {}
 
     virtual void ButtonPressed(unsigned buttonIndex) {}
-    virtual void Rotary1Changed(bool forward) {}
-    virtual void Rotary2Changed(bool forward) {}
 
     const uint16_t * GetIcon(bool on) {
         return (on)? _iconOn : _iconOff;
@@ -115,13 +112,13 @@ public:
         }
     }
 
-    void Rotary1Changed(bool forward) override {
+    void IndexScroll(bool forward) override {
         if (f_rotary1Changed != nullptr) {
             f_rotary1Changed(forward);
         }
     }
 
-    void Rotary2Changed(bool forward) override {
+    void ValueScroll(bool forward) override {
         if (f_rotary2Changed != nullptr) {
             f_rotary2Changed(forward);
         }
@@ -564,33 +561,26 @@ public:
                 if (!dialogActive) {
                     // marshall the inputs to th current scene
                     if (up) {
-                        _scenes[_currentScene]->Rotary1Changed(false);
+                        _scenes[_currentScene]->IndexScroll(false);
                     } else if (down) {
-                        _scenes[_currentScene]->Rotary1Changed(true);
+                        _scenes[_currentScene]->IndexScroll(true);
                     }
 
                     if (left) {
-                        _scenes[_currentScene]->Rotary2Changed(false);
+                        _scenes[_currentScene]->ValueScroll(false);
                     } else if (right) {
-                        _scenes[_currentScene]->Rotary2Changed(true);
+                        _scenes[_currentScene]->ValueScroll(true);
                     }
                 }
                 Update(milliseconds);
             }
         
             if (dialogActive) {
-                if (up) {
-                    _dialogs.top()->DecreaseSelectedIndex();
-                } else if (down) {
-                    _dialogs.top()->IncreaseSelectedIndex();
-                }
+                _dialogs.top()->IndexScroll(!up);
 
-                if (left) {
-                    _dialogs.top()->ValueScroll(true);
-                } else if (right) {
-                    _dialogs.top()->ValueScroll(false);
-                }
-       
+                _dialogs.top()->ValueScroll(left);
+                _dialogs.top()->ValueScroll(!right);
+
                 _dialogs.top()->Update(milliseconds);
             } 
         }

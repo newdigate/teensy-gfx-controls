@@ -8,6 +8,7 @@
 #include "VirtualView.h"
 #include "rect.h"
 #include <Bounce2.h>
+#include <iostream>
 
 class TeensyControl : public VirtualView {
 public:
@@ -38,16 +39,13 @@ public:
         }
     }
 
-    virtual void ValueScroll(bool forward) { 
+    virtual void ValueScroll(const bool forward) {
     }
     
     virtual void ButtonDown(uint8_t buttonNumber) {
     }
 
-    virtual void IncreaseSelectedIndex() {
-    }
-
-    virtual void DecreaseSelectedIndex() {
+    virtual void IndexScroll(const bool forward) {
     }
 
     virtual void NoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) { }
@@ -219,20 +217,17 @@ public:
     }
 
     void DrawBackground() {
-        if (_needsRedraw) {
-            _display.fillRect(_left, _top, _width, _height, _colorMenuItemBackground);
+        _display.fillRect(_left, _top, _width, _height, _colorMenuItemBackground);
 
-            if (_selectedIndex > -1 && _selectedIndex < _children.size() ) {
-                fillRect(0, _children[_selectedIndex]->Top(), _width, _children[_selectedIndex]->Height(), _colorMenuItemBackgroundSelected);
-            }
+        if (_selectedIndex > -1 && _selectedIndex < _children.size() ) {
+            fillRect(0, _children[_selectedIndex]->Top(), _width, _children[_selectedIndex]->Height(), _colorMenuItemBackgroundSelected);
         }
     }
 
-    void Update(unsigned millis) override {
+    void Update(const unsigned millis) override {
         if (_needsRedraw) {
             //fillRect(0, 0, _width, _height, _colorMenuItemBackground);
             DrawBackground();
-            TeensyControl::Update(millis);
             _needsRedraw = false;
         }
         TeensyControl::Update(millis);
@@ -244,20 +239,15 @@ public:
         _children.push_back(control);
     }
 
-    void IncreaseSelectedIndex() override {
-
-        if (_selectedIndex < _children.size() -1) {
+    void IndexScroll(const bool forward) override {
+        if (forward && _selectedIndex < _children.size() -1) {
             const int previousSelectedIndex = _selectedIndex;
             _selectedIndex++;
             _needsRedraw = true;
             ScrollIfNeeded();
             _children[previousSelectedIndex]->ForceRedraw();
             _children[_selectedIndex]->ForceRedraw();
-        }
-    }
-    void DecreaseSelectedIndex() override {
-
-        if (_selectedIndex > 0 ) {
+        } else if (!forward && _selectedIndex > 0) {
             const int previousSelectedIndex = _selectedIndex;
             _selectedIndex--;
             _needsRedraw = true;
@@ -293,33 +283,29 @@ public:
         }
     }
     
-    void ValueScroll(bool forward) override { 
+    void ValueScroll(const bool forward) override {
         if (_selectedIndex < 0 || _selectedIndex > _children.size() -1 || _children.size() < 1)
             return;
         
         _children[_selectedIndex]->ValueScroll(forward);
-        _needsRedraw = true;
     }
 
     void NoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) override {
         if (_selectedIndex < 0 || _selectedIndex > _children.size() -1 || _children.size() < 1)
             return;
         _children[_selectedIndex]->NoteOn(channel, pitch, velocity);
-        _needsRedraw = true;
     }
 
     void ControlChange(uint8_t channel, uint8_t data1, uint8_t data2) override {
         if (_selectedIndex < 0 || _selectedIndex > _children.size() -1 || _children.size() < 1)
             return;
         _children[_selectedIndex]->ControlChange(channel, data1, data2);
-        _needsRedraw = true;
     }
 
     void ButtonDown(uint8_t buttonNumber) override {
         if (_selectedIndex < 0 || _selectedIndex > _children.size() -1 || _children.size() < 1)
             return;
         _children[_selectedIndex]->ButtonDown(buttonNumber);
-        _needsRedraw = true;
     }
 
     int GetSelectedIndex() const {
@@ -327,7 +313,7 @@ public:
     }
 
 protected:
-    int _currentTop = 0;
+    unsigned int _currentTop = 0;
     int _selectedIndex = 0;
     uint16_t _colorMenuItemBackground;
     uint16_t _colorMenuItemBackgroundSelected;
@@ -356,13 +342,13 @@ public:
 
     ~TeensyMenuItem() override = default;
 
-    void Update(unsigned milliseconds) override {
+    void Update(const unsigned milliseconds) override {
         if (_updateWithView != nullptr) {
             _updateWithView(this);
         } else TeensyControl::Update(milliseconds);
     }
     
-    void ValueScroll(bool forward) override {
+    void ValueScroll(const bool forward) override {
         if (_menuValueScroll != nullptr) {
             _menuValueScroll(forward);
         }

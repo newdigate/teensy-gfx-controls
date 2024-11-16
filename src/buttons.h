@@ -27,20 +27,15 @@ public:
             _needsRedraw = true;
         }
     }
-    void ForceRedraw() {
+    void ForceRedraw() override {
         _needsRedraw = true;
     }
 
-    void Update(unsigned milliseconds) {
+    void Update(unsigned milliseconds) override {
       if (_needsRedraw) {
             const uint16_t color1 = _depressed? colors[3] : colors[1];
             const uint16_t color2 = _depressed? colors[1] : colors[3];
           const uint16_t colorbg = _depressed? colors[1] : colors[2];
-
-          _display.drawPixel(_left, _top, 0);
-          _display.drawPixel(_left + _width-1, _top, 0);
-          _display.drawPixel(_left, _top + _height-1, 0);
-          _display.drawPixel(_left + _width-1, _top + _height-1, 0);
 
           _display.fillRect(_left+1, _top+1, _width-2, _height-2, colorbg);
           _display.drawFastHLine(_left+1, _top, _width - 2, color2 );
@@ -50,7 +45,6 @@ public:
 
           if (_highlighted) {
               _display.fillRoundRect(_left + 2, _top + 2, _width -4, _height-5, 2, 0x255A );
-             // _display.drawRoundRect(_left + 1, _top + 1, _width -2, _height-3, 2, 0x255A );
           }
           DrawButton();
 
@@ -61,18 +55,9 @@ public:
     virtual void DrawButton() {
     }
 
-    virtual void ValueScroll(bool forward) {
+    void ValueScroll(bool forward) override {
         _depressed = !_depressed;
         _needsRedraw = true;
-    }
-
-    virtual void ButtonDown(uint8_t buttonNumber) {
-    }
-
-    virtual void IncreaseSelectedIndex() {
-    }
-
-    virtual void DecreaseSelectedIndex() {
     }
 
 protected:
@@ -119,7 +104,12 @@ public:
             _display.fillCircle(_left + 6, _top + 7, 4, 0);
     }
 
-    void ValueScroll(bool forward) override {
+    void ValueScroll(const bool forward) override {
+        _isRecording = !_isRecording;
+        _needsRedraw = true;
+    }
+
+    void ButtonDown(uint8_t buttonNumber) override {
         _isRecording = !_isRecording;
         _needsRedraw = true;
     }
@@ -236,24 +226,20 @@ public:
         _children.push_back(button);
     }
 
-    void Update(unsigned millis) override {
-        for (auto && child : _children){
-            child->Update(millis);
-        }
-    }
     void ButtonDown(uint8_t buttonNumber) override {
         if (_selectedIndex > 0 && _selectedIndex < _children.size()) {
             _children[_selectedIndex]->ButtonDown(buttonNumber);
         }
     }
-    void ValueScroll(bool forward) override {
+    void ValueScroll(const bool forward) override {
         if (_selectedIndex > 0 && _selectedIndex < _children.size()) {
             _children[_selectedIndex]->ValueScroll(forward);
         }
+        //ForceRedraw();
     }
     
-    void IncreaseSelectedIndex() override {
-        if (_selectedIndex == -1 || _selectedIndex < _children.size() - 1) {
+    void IndexScroll(const bool forward) override {
+        if (forward && (_selectedIndex == -1 || _selectedIndex < _children.size() - 1)) {
             if (_selectedIndex >= 0) {
                 auto *selectedButton = dynamic_cast<TeensyButton*>(_children[_selectedIndex]);
                 selectedButton->SetHighlighted(false);
@@ -261,11 +247,7 @@ public:
             _selectedIndex += 1;
             auto *selectedButton = dynamic_cast<TeensyButton*>(_children[_selectedIndex]);
             selectedButton->SetHighlighted(true);
-        }
-    }
-
-    void DecreaseSelectedIndex() override {
-        if (_selectedIndex > 0) {
+        } else if (!forward && _selectedIndex > 0) {
             if (_selectedIndex >= 0 && _selectedIndex < _children.size()) {
                 auto *selectedButton = dynamic_cast<TeensyButton*>(_children[_selectedIndex]);
                 selectedButton->SetHighlighted(false);
@@ -319,6 +301,7 @@ public:
         } else
             ForceRedraw();
     }
+
 protected:
     bool _initialized;
     TeensyButtonRewind button_rewind;
