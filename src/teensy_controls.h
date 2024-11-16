@@ -14,9 +14,10 @@ public:
     TeensyControl(View &view, std::function<void()> updateFn, unsigned int width, unsigned int height, unsigned int x, unsigned int y) :
         VirtualView (view,  x, y, width, height),
         f_update(updateFn),
-        _children()
+        _children(),
+        _needsRedraw(false)
         {
-        }
+    }
 
     virtual ~TeensyControl() {
     }
@@ -27,6 +28,13 @@ public:
         }
         for (auto && child : _children){
             child->Update(millis);
+        }
+    }
+
+    virtual void ForceRedraw() {
+        _needsRedraw = true;
+        for(auto &child:_children) {
+            child->ForceRedraw();
         }
     }
 
@@ -64,6 +72,7 @@ public:
 protected:
     std::function<void()> f_update = nullptr;
     std::vector<TeensyControl *> _children;
+    bool _needsRedraw;
 };
 
 template< typename TDisplay >
@@ -210,7 +219,7 @@ public:
     }
 
     void DrawBackground() {
-        if (NeedsUpdate) {
+        if (_needsRedraw) {
             _display.fillRect(_left, _top, _width, _height, _colorMenuItemBackground);
 
             if (_selectedIndex > -1 && _selectedIndex < _children.size() ) {
@@ -220,11 +229,11 @@ public:
     }
 
     void Update(unsigned millis) override {
-        if (NeedsUpdate) {
+        if (_needsRedraw) {
             //fillRect(0, 0, _width, _height, _colorMenuItemBackground);
             DrawBackground();
             TeensyControl::Update(millis);
-            NeedsUpdate = false;
+            _needsRedraw = false;
         }
         TeensyControl::Update(millis);
     }
@@ -238,17 +247,23 @@ public:
     void IncreaseSelectedIndex() override {
 
         if (_selectedIndex < _children.size() -1) {
+            const int previousSelectedIndex = _selectedIndex;
             _selectedIndex++;
-            NeedsUpdate = true;
+            _needsRedraw = true;
             ScrollIfNeeded();
+            _children[previousSelectedIndex]->ForceRedraw();
+            _children[_selectedIndex]->ForceRedraw();
         }
     }
     void DecreaseSelectedIndex() override {
 
         if (_selectedIndex > 0 ) {
+            const int previousSelectedIndex = _selectedIndex;
             _selectedIndex--;
-            NeedsUpdate = true;
+            _needsRedraw = true;
             ScrollIfNeeded();
+            _children[previousSelectedIndex]->ForceRedraw();
+            _children[_selectedIndex]->ForceRedraw();
         }
     }
 
@@ -283,35 +298,34 @@ public:
             return;
         
         _children[_selectedIndex]->ValueScroll(forward);
-        NeedsUpdate = true;
+        _needsRedraw = true;
     }
 
     void NoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) override {
         if (_selectedIndex < 0 || _selectedIndex > _children.size() -1 || _children.size() < 1)
             return;
         _children[_selectedIndex]->NoteOn(channel, pitch, velocity);
-        NeedsUpdate = true;   
+        _needsRedraw = true;
     }
 
     void ControlChange(uint8_t channel, uint8_t data1, uint8_t data2) override {
         if (_selectedIndex < 0 || _selectedIndex > _children.size() -1 || _children.size() < 1)
             return;
         _children[_selectedIndex]->ControlChange(channel, data1, data2);
-        NeedsUpdate = true;   
+        _needsRedraw = true;
     }
 
     void ButtonDown(uint8_t buttonNumber) override {
         if (_selectedIndex < 0 || _selectedIndex > _children.size() -1 || _children.size() < 1)
             return;
         _children[_selectedIndex]->ButtonDown(buttonNumber);
-        NeedsUpdate = true;   
+        _needsRedraw = true;
     }
 
     int GetSelectedIndex() const {
         return _selectedIndex;
     }
-    bool NeedsUpdate = true;
-     
+
 protected:
     int _currentTop = 0;
     int _selectedIndex = 0;
@@ -331,7 +345,7 @@ public:
             std::function<bool(uint8_t channel, uint8_t data1, uint8_t data2)> menuMidiCCEvent = nullptr,
             std::function<void(uint8_t buttonNumber)> buttonDownEvent = nullptr
         ) : 
-        TeensyControl (view, std::bind(&TeensyMenuItem::MenuItemUpdate, this), 128, height, 0, 0),
+        TeensyControl (view, nullptr, 128, height, 0, 0),
         _updateWithView(updateWithView),
         _menuValueScroll(menuValueScroll),
         _menuMidiNoteEvent(menuMidiNoteEvent),
@@ -342,13 +356,13 @@ public:
 
     ~TeensyMenuItem() override = default;
 
-    virtual void MenuItemUpdate() { 
+    void Update(unsigned milliseconds) override {
         if (_updateWithView != nullptr) {
             _updateWithView(this);
-        }
+        } else TeensyControl::Update(milliseconds);
     }
     
-    virtual void ValueScroll(bool forward) override { 
+    void ValueScroll(bool forward) override {
         if (_menuValueScroll != nullptr) {
             _menuValueScroll(forward);
         }
@@ -391,7 +405,7 @@ public:
             TeensyMenu &menu,
             const String &label,
             const std::function<void(uint8_t buttonNumber)>& buttonDownEvent) :
-        TeensyMenuItem (menu, std::bind(&TeensyStringMenuItem::MenuItemUpdate, this), 10, nullptr, nullptr, nullptr, buttonDownEvent), //std::bind(&TeensyStringMenuItem::ButtonDown, this, std::placeholders::_1)),
+        TeensyMenuItem (menu, nullptr, 10, nullptr, nullptr, nullptr, buttonDownEvent), //std::bind(&TeensyStringMenuItem::ButtonDown, this, std::placeholders::_1)),
         _label(label),
         buttonDownEvent(buttonDownEvent)
     {
@@ -399,14 +413,14 @@ public:
 
     ~TeensyStringMenuItem() override = default;
 
-    void MenuItemUpdate() override {
+    void Update(unsigned milliseconds) override {
         setTextSize(1);
         drawString(_label.c_str(), 0, 1);//+_top-_yOffset);
     }
 
     void ButtonDown(unsigned char buttonNumber) override {
         if (buttonDownEvent) {
-            return buttonDownEvent(buttonNumber);
+            buttonDownEvent(buttonNumber);
         }
     }
 

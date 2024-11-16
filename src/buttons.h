@@ -276,7 +276,7 @@ public:
         }
     }
 
-    void ForceRedraw() {
+    void ForceRedraw() override {
         for(auto &child:_children) {
             TeensyButton *button = dynamic_cast<TeensyButton*>(child);
             button->ForceRedraw();
@@ -295,12 +295,12 @@ public:
     TeensyMediaButtonBar(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y) :
                             TeensyButtonBar (view, width, height, x, y),
                             _initialized(false),
-                            button_rewind(*this),
-                            button_play(*this),
-                            button_pause(*this),
-                            button_stop(*this),
-                            button_fastfwd(*this),
-                            button_record(*this)
+                            button_rewind(view),
+                            button_play(view),
+                            button_pause(view),
+                            button_stop(view),
+                            button_fastfwd(view),
+                            button_record(view)
     {
     }
 
