@@ -59,7 +59,7 @@ void showDialog(int buttonIndex) {
 
       Serial.printf("showDialog() \n");
 
-      dialogMenu->NeedsUpdate = true;
+      dialogMenu->ForceRedraw();
       sceneController.AddDialog(dialogMenu);
     }
 }
@@ -121,15 +121,14 @@ Scene *settingsScene = new Scene(virtualDisplay, 128, 128, 0, 0,
                               settingsMenu.Update(millis);
                               pianoDisplay1.drawPiano();
                         },      //            std::function<void()> update = nullptr,  
-                        [] { virtualDisplay.fillScreen(ST7735_BLUE); settingsMenu.NeedsUpdate = true; pianoDisplay1.displayNeedsUpdating(); },   //             std::function<void()> initScreen = nullptr, 
+                        [] { virtualDisplay.fillScreen(ST7735_BLUE); settingsMenu.ForceRedraw(); pianoDisplay1.displayNeedsUpdating(); },   //             std::function<void()> initScreen = nullptr,
                         [] { },   //             std::function<void()> uninitScreen = nullptr, 
                         [] (unsigned index) { 
                             settingsMenu.ButtonDown(index);
                         }, //             std::function<void(unsigned)> buttonPressed = nullptr, 
                         [] (bool forward) { 
-                            if (forward) settingsMenu.IncreaseSelectedIndex(); 
-                            else settingsMenu.DecreaseSelectedIndex(); 
-                        }, //std::function<void(bool)> rotary1Changed = nullptr, 
+                            settingsMenu.IndexScroll(forward);
+                        }, //std::function<void(bool)> rotary1Changed = nullptr,
                         [] (bool forward) { } //std::function<void(bool)> rotary2Changed = nullptr
                         );
 
@@ -189,13 +188,10 @@ Scene *playScene = new Scene(virtualDisplay, 128, 128, 0, 0,
                         [](unsigned buttonIndex) {
                           button_bar.ButtonDown(buttonIndex);
                         },
-                        [] (bool forward) {
-                          if (forward)
-                            button_bar.IncreaseSelectedIndex();
-                          else
-                            button_bar.DecreaseSelectedIndex();
+                        [] (const bool forward) {
+                            button_bar.IndexScroll(forward);
                         },
-                        [] (bool forward) {
+                        [] (const bool forward) {
                           button_bar.ValueScroll(forward);
                         });
 
