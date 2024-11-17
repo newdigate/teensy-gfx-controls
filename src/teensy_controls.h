@@ -218,9 +218,11 @@ public:
 
     void DrawBackground() {
         _display.fillRect(_left, _top, _width, _height, _colorMenuItemBackground);
-
-        if (_selectedIndex > -1 && _selectedIndex < _children.size() ) {
-            fillRect(0, _children[_selectedIndex]->Top(), _width, _children[_selectedIndex]->Height(), _colorMenuItemBackgroundSelected);
+        DrawMenuItemBackground(_selectedIndex, _colorMenuItemBackgroundSelected);
+    }
+    void DrawMenuItemBackground(const int index, const uint16_t color) {
+        if (index > -1 && index < _children.size() ) {
+            fillRect(0, _children[index]->Top(), _width, _children[index]->Height(), color);
         }
     }
 
@@ -243,21 +245,31 @@ public:
         if (forward && _selectedIndex < _children.size() -1) {
             const int previousSelectedIndex = _selectedIndex;
             _selectedIndex++;
-            _needsRedraw = true;
-            ScrollIfNeeded();
-            _children[previousSelectedIndex]->ForceRedraw();
-            _children[_selectedIndex]->ForceRedraw();
+            //_needsRedraw = true;
+            if (ScrollIfNeeded()) {
+                _needsRedraw = true;
+            } else {
+                DrawMenuItemBackground(previousSelectedIndex, _colorMenuItemBackground);
+                DrawMenuItemBackground(_selectedIndex, _colorMenuItemBackgroundSelected);
+                _children[previousSelectedIndex]->ForceRedraw();
+                _children[_selectedIndex]->ForceRedraw();
+            }
         } else if (!forward && _selectedIndex > 0) {
             const int previousSelectedIndex = _selectedIndex;
             _selectedIndex--;
-            _needsRedraw = true;
-            ScrollIfNeeded();
-            _children[previousSelectedIndex]->ForceRedraw();
-            _children[_selectedIndex]->ForceRedraw();
+            //_needsRedraw = true;
+            if (ScrollIfNeeded()) {
+                _needsRedraw = true;
+            } else {
+                DrawMenuItemBackground(previousSelectedIndex, _colorMenuItemBackground);
+                DrawMenuItemBackground(_selectedIndex, _colorMenuItemBackgroundSelected);
+                _children[previousSelectedIndex]->ForceRedraw();
+                _children[_selectedIndex]->ForceRedraw();
+            }
         }
     }
 
-    void ScrollIfNeeded() {
+    bool ScrollIfNeeded() {
         if (_currentTop > _height) {
 
             int top = 0;
@@ -277,10 +289,12 @@ public:
                 _yOffset = newYOffset;
                 _displayclipy2 = _height - 1 + _yOffset;
                 //_displayclipy1 = _yOffset;
+                return true;
 
-                _display.fillRect(_left, _top, _width, _height, _colorMenuItemBackground);
+                //_display.fillRect(_left, _top, _width, _height, _colorMenuItemBackground);
             }
         }
+        return false;
     }
     
     void ValueScroll(const bool forward) override {
