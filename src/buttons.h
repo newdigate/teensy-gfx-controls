@@ -241,19 +241,19 @@ public:
     void IndexScroll(const bool forward) override {
         if (forward && (_selectedIndex == -1 || _selectedIndex < _children.size() - 1)) {
             if (_selectedIndex >= 0) {
-                auto *selectedButton = dynamic_cast<TeensyButton*>(_children[_selectedIndex]);
+                auto *selectedButton = static_cast<TeensyButton *>(_children[_selectedIndex]);
                 selectedButton->SetHighlighted(false);
             }
             _selectedIndex += 1;
-            auto *selectedButton = dynamic_cast<TeensyButton*>(_children[_selectedIndex]);
+            auto *selectedButton = static_cast<TeensyButton*>(_children[_selectedIndex]);
             selectedButton->SetHighlighted(true);
         } else if (!forward && _selectedIndex > 0) {
             if (_selectedIndex >= 0 && _selectedIndex < _children.size()) {
-                auto *selectedButton = dynamic_cast<TeensyButton*>(_children[_selectedIndex]);
+                auto *selectedButton = static_cast<TeensyButton*>(_children[_selectedIndex]);
                 selectedButton->SetHighlighted(false);
             }
             _selectedIndex -= 1;
-            auto *selectedButton = dynamic_cast<TeensyButton*>(_children[_selectedIndex]);
+            auto *selectedButton = static_cast<TeensyButton*>(_children[_selectedIndex]);
             selectedButton->SetHighlighted(true);
         }
     }
@@ -265,6 +265,9 @@ public:
         }
     }
 
+    int GetSelectedIndex() const {
+        return _selectedIndex;
+    }
 protected:
     unsigned int _totalWidth;
     int _selectedIndex;

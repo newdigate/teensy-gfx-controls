@@ -22,7 +22,7 @@ public:
         }
     }
 
-    void ForceRedraw() {
+    void ForceRedraw() override {
         _needsRedraw = true;
     }
 
@@ -160,10 +160,10 @@ public:
     virtual void DrawButton() {
     }
 
-    virtual void ValueScroll(bool forward) {
+    void ValueScroll(bool forward) override {
     }
 
-    virtual void ButtonDown(uint8_t buttonNumber) {
+    void ButtonDown(uint8_t buttonNumber) override {
     }
 
     virtual void IncreaseSelectedIndex() {
@@ -264,7 +264,7 @@ public:
         }
     }
 
-    void ForceRedraw() {
+    void ForceRedraw() override {
         _needsRedraw = true;
         for (auto && child: _children) {
             auto && sevenSegment = dynamic_cast<TeensySevenSegment*>(child);
@@ -344,10 +344,10 @@ public:
         }
     }
 
-    void ForceRedraw() {
+    void ForceRedraw() override {
         _needsRedraw = true;
         for (auto && child: _children) {
-            auto && sevenSegment = dynamic_cast<TeensySevenSegment*>(child);
+            auto && sevenSegment = static_cast<TeensySevenSegment*>(child);
             sevenSegment->ForceRedraw();
         }
     }
