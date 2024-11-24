@@ -6,10 +6,10 @@ class TeensyButton : public TeensyControl {
 public:
     TeensyButton(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y) :
         TeensyControl (view, nullptr, width, height, x, y),
-        _needsRedraw(true),
         _depressed(false),
         _highlighted(false)
     {
+        _needsRedraw = true;
     }
 
     virtual ~TeensyButton() {
@@ -61,7 +61,6 @@ public:
     }
 
 protected:
-    bool _needsRedraw;
     bool _depressed;
     bool _highlighted;
     uint16_t colors[4] = {0x0000,0x6B4D,0xBDF7,0xFFFF};

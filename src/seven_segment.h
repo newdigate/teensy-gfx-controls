@@ -6,10 +6,10 @@ class TeensySevenSegment : public TeensyControl {
 public:
     TeensySevenSegment(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y) :
         TeensyControl (view, nullptr, width, height, x, y),
-        _needsRedraw(true),
         _highlighted(false),
         _digit(0)
     {
+        _needsRedraw = true;
     }
 
     virtual ~TeensySevenSegment() {
@@ -174,7 +174,6 @@ public:
 
 protected:
     uint8_t _digit;
-    bool _needsRedraw;
     bool _highlighted;
     uint16_t colors[4] = {0x0000,0x3A2A,0xBDF7,0xFFFF};
 };
@@ -213,10 +212,10 @@ public:
     TeensyTimeIndicator(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y) :
         TeensyControl (view, nullptr, width, height, x, y),
         _numSegments(10),
-        _needsRedraw(true),
         _highlighted(false),
         _milliseconds(0)
     {
+        _needsRedraw = true;
     }
 
     void Init() {
@@ -285,7 +284,7 @@ public:
 
 protected:
     uint8_t _numSegments;
-    bool _needsRedraw;
+
     bool _highlighted;
     uint16_t _offsetx;
     unsigned _milliseconds;
@@ -309,11 +308,11 @@ class TeensyBarsAndBeatsIndicator : public TeensyControl {
 public:
     TeensyBarsAndBeatsIndicator(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y) :
         TeensyControl (view, nullptr, width, height, x, y),
-        _needsRedraw(true),
         _highlighted(false),
         _bars(0),
         _beats(0)
     {
+        _needsRedraw = true;
         AddSegment();
         AddSegment();
         AddSegment();
@@ -363,7 +362,6 @@ public:
     }
 
 protected:
-    bool _needsRedraw;
     bool _highlighted;
     uint16_t _offsetx;
     unsigned _bars, _beats;
