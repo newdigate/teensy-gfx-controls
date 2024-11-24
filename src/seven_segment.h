@@ -217,6 +217,9 @@ public:
         _highlighted(false),
         _milliseconds(0)
     {
+    }
+
+    void Init() {
         AddSegment();
         AddSegment();
         AddSegment();
@@ -267,8 +270,7 @@ public:
     void ForceRedraw() override {
         _needsRedraw = true;
         for (auto && child: _children) {
-            auto && sevenSegment = static_cast<TeensySevenSegment*>(child);
-            sevenSegment->ForceRedraw();
+            child->ForceRedraw();
         }
     }
 
@@ -347,8 +349,7 @@ public:
     void ForceRedraw() override {
         _needsRedraw = true;
         for (auto && child: _children) {
-            auto && sevenSegment = static_cast<TeensySevenSegment*>(child);
-            sevenSegment->ForceRedraw();
+            child->ForceRedraw();
         }
     }
 
