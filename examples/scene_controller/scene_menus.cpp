@@ -158,9 +158,10 @@ TeensySevenSegment s8(virtualDisplay, 5, 8, segmentx++ * 7, 24);
 TeensySevenSegment s9(virtualDisplay, 5, 8, segmentx++ * 7, 24);
 TeensySevenSegment s0(virtualDisplay, 5, 8, segmentx++ * 7, 24);
 TeensySevenSegment* sevensegments[] = {&s0, &s1, &s2, &s3, &s4, &s5, &s6, &s7, &s8, &s9};
-
+TeensyBarsAndBeatsIndicator bars_and_beats_indicator(virtualDisplay, 128, 8, 0, 46);
 TeensyTimeIndicator time_indicator(virtualDisplay, 128, 8, 0, 36);
-unsigned timeIndicatorMillis = 0, oldTimeIndicatorMillis = 0;
+unsigned timeIndicatorMillis = 0, oldTimeIndicatorMillis = 0, oldBarsAndBeatsIndicatorMillis=0, beats =0, bars =0;
+double tempo = 120.0;
 Scene *playScene = new Scene(virtualDisplay, 128, 128, 0, 0,
                         _bmp_play_on, 
                         _bmp_play_off, 
@@ -169,17 +170,32 @@ Scene *playScene = new Scene(virtualDisplay, 128, 128, 0, 0,
                           button_bar.Update(milliseconds);
                           time_indicator.Update(milliseconds);
                           if (milliseconds > oldTimeIndicatorMillis + 20) {
+                            unsigned millisecondsPerBeat = 60000.0 / tempo;
+                            unsigned beatsDelta = (milliseconds - oldBarsAndBeatsIndicatorMillis)/millisecondsPerBeat;
+                            if (beatsDelta > 0) {
+                              beats += beatsDelta;
+                              if (beats > 3) {
+                                bars += beats/4;
+                                beats = beats %4;
+                              }
+                              bars_and_beats_indicator.SetBarsAndBeats(bars, beats + 1);
+                              oldBarsAndBeatsIndicatorMillis = milliseconds;
+                            }
                             oldTimeIndicatorMillis = milliseconds;
                             time_indicator.SetTime(milliseconds - timeIndicatorMillis);
                           }
+                          bars_and_beats_indicator.Update(milliseconds);
                           for (auto && sevensegment : sevensegments) {
                             sevensegment->Update(milliseconds);
                           }
                         },
                         [] {
                           timeIndicatorMillis = millis();
+                          oldTimeIndicatorMillis = timeIndicatorMillis;
+                          oldBarsAndBeatsIndicatorMillis = timeIndicatorMillis;
                           button_bar.ForceRedraw();
                           time_indicator.ForceRedraw();
+                          bars_and_beats_indicator.ForceRedraw();
                           for (auto && sevensegment : sevensegments) {
                             sevensegment->ForceRedraw();
                           }

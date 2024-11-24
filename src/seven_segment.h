@@ -302,4 +302,84 @@ protected:
         _offsetx += 3;
     }
 };
+
+class TeensyBarsAndBeatsIndicator : public TeensyControl {
+public:
+    TeensyBarsAndBeatsIndicator(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y) :
+        TeensyControl (view, nullptr, width, height, x, y),
+        _needsRedraw(true),
+        _highlighted(false),
+        _bars(0),
+        _beats(0)
+    {
+        AddSegment();
+        AddSegment();
+        AddSegment();
+        AddSegment();
+        AddSeparator();
+        AddSegment();
+        AddSegment();
+    }
+
+    virtual ~TeensyBarsAndBeatsIndicator() {
+    }
+
+    void SetBarsAndBeats(const unsigned bars, unsigned beats) {
+        if (_bars != bars || _beats != beats) {
+            _bars = bars;
+            _beats = beats;
+            _needsRedraw = true;
+            uint8_t barsThousands = _bars / 1000;
+            uint8_t barsHundreds = _bars / 100;
+            uint8_t barsTens = _bars / 10;
+            uint8_t barsOnes = _bars % 10;
+            uint8_t beatsTens = _beats / 10;
+            uint8_t beatsOnes = _beats % 10;
+            uint8_t digits[] = { barsThousands, barsHundreds, barsTens, barsOnes, beatsTens, beatsOnes };
+            uint8_t index = 0;
+            for(auto && child:_segments) {
+                child->SetDigit(digits[index]);
+                index++;
+            }
+        }
+    }
+
+    void ForceRedraw() {
+        _needsRedraw = true;
+        for (auto && child: _children) {
+            auto && sevenSegment = dynamic_cast<TeensySevenSegment*>(child);
+            sevenSegment->ForceRedraw();
+        }
+    }
+
+    void Update(unsigned millis) override {
+        if (_needsRedraw) {
+            for (auto && child: _children) {
+                child->Update(millis);
+            }
+            _needsRedraw = false;
+        }
+    }
+
+protected:
+    bool _needsRedraw;
+    bool _highlighted;
+    uint16_t _offsetx;
+    unsigned _bars, _beats;
+    std::vector<TeensySevenSegment*> _segments;
+
+    void AddSegment() {
+        auto && segment = new TeensySevenSegment(_display, 5, _height, _left + _offsetx, _top);
+        _children.push_back(segment);
+        _segments.push_back(segment);
+        _offsetx += 7;
+    }
+
+    void AddSeparator() {
+        auto && separator = new TeensySevenSegmentSeparator(_display, 2, _height, _left + _offsetx, _top);
+        _children.push_back(separator);
+        _offsetx += 3;
+    }
+};
+
 #endif  //TEENSY_CONTROLS_H
