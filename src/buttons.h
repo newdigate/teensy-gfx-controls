@@ -260,7 +260,7 @@ public:
 
     void ForceRedraw() override {
         for(auto &child:_children) {
-            TeensyButton *button = dynamic_cast<TeensyButton*>(child);
+            TeensyButton *button = static_cast<TeensyButton*>(child);
             button->ForceRedraw();
         }
     }

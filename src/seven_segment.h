@@ -267,7 +267,7 @@ public:
     void ForceRedraw() override {
         _needsRedraw = true;
         for (auto && child: _children) {
-            auto && sevenSegment = dynamic_cast<TeensySevenSegment*>(child);
+            auto && sevenSegment = static_cast<TeensySevenSegment*>(child);
             sevenSegment->ForceRedraw();
         }
     }
