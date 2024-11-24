@@ -18,12 +18,8 @@ public:
     void SetDigit(uint8_t digit) {
         if (digit != _digit){
             _digit = digit;
-            _needsRedraw = true;
+            ForceRedraw();
         }
-    }
-
-    void ForceRedraw() override {
-        _needsRedraw = true;
     }
 
     void Update(unsigned milliseconds) override {
@@ -266,13 +262,13 @@ public:
         }
     }
 
-    void ForceRedraw() override {
+    /*void ForceRedraw() override {
         _needsRedraw = true;
         for (auto && child: _children) {
             child->ForceRedraw();
         }
-    }
-
+    }*/
+/*
     void Update(unsigned millis) override {
         if (_needsRedraw) {
             for (auto && child: _children) {
@@ -281,7 +277,7 @@ public:
             _needsRedraw = false;
         }
     }
-
+*/
 protected:
     uint8_t _numSegments;
 
