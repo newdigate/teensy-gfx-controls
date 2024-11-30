@@ -210,7 +210,6 @@ public:
         _highlighted(false),
         _milliseconds(0)
     {
-        _needsRedraw = true;
     }
 
     void Init() {
@@ -229,6 +228,7 @@ public:
             AddSegment();
             AddSegment();
         }
+        ForceRedraw();
     }
 
     virtual ~TeensyTimeIndicator() {
@@ -260,25 +260,10 @@ public:
                 child->SetDigit(digits[index]);
                 index++;
             }
+            ForceRedraw();
         }
     }
 
-    /*void ForceRedraw() override {
-        _needsRedraw = true;
-        for (auto && child: _children) {
-            child->ForceRedraw();
-        }
-    }*/
-/*
-    void Update(unsigned millis) override {
-        if (_needsRedraw) {
-            for (auto && child: _children) {
-                child->Update(millis);
-            }
-            _needsRedraw = false;
-        }
-    }
-*/
 protected:
     bool _highlighted;
     uint16_t _offsetx;
