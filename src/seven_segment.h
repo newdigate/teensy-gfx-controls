@@ -191,6 +191,7 @@ public:
             _lastMilliseconds = millis;
         }
         if (_needsRedraw) {
+            Serial.println("TeensySevenSegmentSeparator update");
             const int16_t point1x = _left + _width/2 -1,               point1y = _top + _height/4;
             const int16_t point2x = _left + _width/2 - 1,              point2y = _top + _height*3/4;
             _display.drawFastVLine(point1x, point1y, 2, _indictorOn? colors[2]:colors[1]);
@@ -205,14 +206,15 @@ private:
 
 class TeensyTimeIndicator : public TeensyControl {
 public:
-    TeensyTimeIndicator(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y) :
-        TeensyControl (view, nullptr, width, height, x, y),
+    TeensyTimeIndicator(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y) : TeensyControl(
+            view, nullptr, width, height, x, y),
         _highlighted(false),
-        _milliseconds(0)
-    {
+        _offsetx(0),
+        _milliseconds(0) {
     }
 
     void Init() {
+        Serial.println("TeensyTimeIndicator init");
         if (_segments.size() == 0) {
             AddSegment();
             AddSegment();
@@ -229,9 +231,6 @@ public:
             AddSegment();
         }
         ForceRedraw();
-    }
-
-    virtual ~TeensyTimeIndicator() {
     }
 
     void SetTime(const unsigned milliseconds) {
