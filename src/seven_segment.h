@@ -207,7 +207,6 @@ class TeensyTimeIndicator : public TeensyControl {
 public:
     TeensyTimeIndicator(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y) :
         TeensyControl (view, nullptr, width, height, x, y),
-        _numSegments(10),
         _highlighted(false),
         _milliseconds(0)
     {
@@ -215,19 +214,21 @@ public:
     }
 
     void Init() {
-        AddSegment();
-        AddSegment();
-        AddSegment();
-        AddSegment();
-        AddSeparator();
-        AddSegment();
-        AddSegment();
-        AddSeparator();
-        AddSegment();
-        AddSegment();
-        AddSeparator();
-        AddSegment();
-        AddSegment();
+        if (_segments.size() == 0) {
+            AddSegment();
+            AddSegment();
+            AddSegment();
+            AddSegment();
+            AddSeparator();
+            AddSegment();
+            AddSegment();
+            AddSeparator();
+            AddSegment();
+            AddSegment();
+            AddSeparator();
+            AddSegment();
+            AddSegment();
+        }
     }
 
     virtual ~TeensyTimeIndicator() {
@@ -279,8 +280,6 @@ public:
     }
 */
 protected:
-    uint8_t _numSegments;
-
     bool _highlighted;
     uint16_t _offsetx;
     unsigned _milliseconds;
