@@ -191,9 +191,8 @@ public:
             _lastMilliseconds = millis;
         }
         if (_needsRedraw) {
-            Serial.println("TeensySevenSegmentSeparator update");
-            const int16_t point1x = _left + _width/2 -1,               point1y = _top + _height/4;
-            const int16_t point2x = _left + _width/2 - 1,              point2y = _top + _height*3/4;
+            int16_t point1x = _left + _width/2 -1,               point1y = _top + _height/4;
+            int16_t point2x = _left + _width/2 - 1,              point2y = _top + _height*3/4;
             _display.drawFastVLine(point1x, point1y, 2, _indictorOn? colors[2]:colors[1]);
             _display.drawFastVLine(point2x, point2y, 2, _indictorOn? colors[2]:colors[1]);
             _needsRedraw = false;
@@ -214,7 +213,6 @@ public:
     }
 
     void Init() {
-        Serial.println("TeensyTimeIndicator init");
         if (_segments.size() == 0) {
             AddSegment();
             AddSegment();
