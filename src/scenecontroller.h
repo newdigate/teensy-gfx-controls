@@ -595,13 +595,10 @@ public:
     };
 
     void Init() {
-        Serial.print("SceneController init: ");
         _instances.push_back(this);
-        Serial.println(_instances.size());
     }
 
     static void handleNoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) {
-        Serial.println("midi note on");
         for (auto instance: _instances) {
             instance->NoteOn(channel, pitch, velocity);
         }
