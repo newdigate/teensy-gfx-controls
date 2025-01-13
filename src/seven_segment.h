@@ -226,7 +226,7 @@ public:
             AddSegment();
             AddSeparator();
             AddSegment();
-            AddSegment();
+            //AddSegment();
         }
         ForceRedraw();
     }
@@ -250,8 +250,8 @@ public:
             uint8_t secondsTens = seconds / 10;
             uint8_t secondsOnes = seconds % 10;
             uint8_t millisTenths = mseconds / 100;
-            uint8_t millisHundredths = mseconds / 10;
-            uint8_t digits[] = {hoursThousands, hoursHundreds, hoursTens, hoursOnes, minutesTens, minutesOnes, secondsTens, secondsOnes, millisTenths, millisHundredths};
+            //uint8_t millisHundredths = mseconds / 10;
+            uint8_t digits[] = {hoursThousands, hoursHundreds, hoursTens, hoursOnes, minutesTens, minutesOnes, secondsTens, secondsOnes, millisTenths /*, millisHundredths*/};
             uint8_t index = 0;
             for(auto && child:_segments) {
                 child->SetDigit(digits[index]);
