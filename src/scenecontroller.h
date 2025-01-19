@@ -434,7 +434,7 @@ public:
                        _button3(button3),
                        _encoderUpDown(encoderUpDown),
                        _encoderLeftRight(encoderLeftRight),
-                       _midi(midi) {
+                       _midi(midi){
 
         _midi.setHandleNoteOn( handleNoteOn );
         _midi.setHandleNoteOff( handleNoteOff );

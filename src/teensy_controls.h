@@ -429,6 +429,40 @@ private:
     std::function<void(int)> buttonDownEvent;
 };
 
+class TeensyCharMenuItem : public TeensyMenuItem {
+public:
+    TeensyCharMenuItem(TeensyMenu &menu,
+                       char *string,
+                       const std::function<void(uint8_t buttonNumber)>& buttonDownEvent) :
+                       TeensyMenuItem (menu, nullptr, 10, nullptr, nullptr, nullptr, buttonDownEvent), //std::bind(&TeensyStringMenuItem::ButtonDown, this, std::placeholders::_1)),
+                        _string(string),
+                        buttonDownEvent(buttonDownEvent)
+    {
+    }
+
+    ~TeensyCharMenuItem() override = default;
+
+    void Update(unsigned milliseconds) override {
+        if (_string == nullptr) return;
+        setTextSize(1);
+        drawString(_string, 0, 1);//+_top-_yOffset);
+    }
+
+    void ButtonDown(unsigned char buttonNumber) override {
+        if (buttonDownEvent) {
+            buttonDownEvent(buttonNumber);
+        }
+    }
+
+    void SetString(char *string) {
+        _string = string;
+    }
+
+private:
+    char* _string;
+    std::function<void(int)> buttonDownEvent;
+};
+
 class TeensyMenuController {
 public:
     TeensyMenuController(TeensyMenu &teensyMenu) :
