@@ -37,14 +37,14 @@ public:
             const uint16_t color2 = _depressed? colors[1] : colors[3];
           const uint16_t colorbg = _depressed? colors[1] : colors[2];
 
-          _display.fillRect(_left+1, _top+1, _width-2, _height-2, colorbg);
-          _display.drawFastHLine(_left+1, _top, _width - 2, color2 );
-          _display.drawFastVLine(_left, _top+1, _height - 3, color2 );
-          _display.drawFastHLine(_left + 1, _top + _height - 2, _width - 2, color1 );
-          _display.drawFastVLine(_left + _width - 1, _top + 1, _height - 3, color1 );
+          _view.fillRect(_left + 1, _top + 1, _width - 2, _height - 2, colorbg);
+          _view.drawFastHLine(_left + 1, _top, _width - 2, color2 );
+          _view.drawFastVLine(_left, _top + 1, _height - 3, color2 );
+          _view.drawFastHLine(_left + 1, _top + _height - 2, _width - 2, color1 );
+          _view.drawFastVLine(_left + _width - 1, _top + 1, _height - 3, color1 );
 
           if (_highlighted) {
-              _display.fillRoundRect(_left + 2, _top + 2, _width -4, _height-5, 2, 0x255A );
+              _view.fillRoundRect(_left + 2, _top + 2, _width - 4, _height - 5, 2, 0x255A );
           }
           DrawButton();
 
@@ -94,13 +94,13 @@ public:
 
     void DrawButton() override {
         if (!_isRecording) {
-            _display.drawCircle(_left + 6, _top + 7, 4, 0xD105);
+            _view.drawCircle(_left + 6, _top + 7, 4, 0xD105);
             return;
         }
         if (_indicatorOn)
-            _display.fillCircle(_left + 6, _top + 7, 4, 0xD105);
+            _view.fillCircle(_left + 6, _top + 7, 4, 0xD105);
         else
-            _display.fillCircle(_left + 6, _top + 7, 4, 0);
+            _view.fillCircle(_left + 6, _top + 7, 4, 0);
     }
 
     void ValueScroll(const bool forward) override {
@@ -126,7 +126,7 @@ public:
     }
 
     void DrawButton() override {
-        _display.fillRect(_left + 4, _top + 4,  _width-8, _height-9, 0);
+        _view.fillRect(_left + 4, _top + 4, _width - 8, _height - 9, 0);
     }
 };
 
@@ -137,8 +137,8 @@ public:
     }
 
     void DrawButton() override {
-        _display.fillRect(_left + 3, _top + 4,  4, _height-9, 0);
-        _display.fillRect(_left + 9, _top + 4,  4, _height-9, 0);
+        _view.fillRect(_left + 3, _top + 4, 4, _height - 9, 0);
+        _view.fillRect(_left + 9, _top + 4, 4, _height - 9, 0);
     }
 };
 
@@ -152,7 +152,7 @@ public:
     void DrawButton() override {
         const int16_t left = _left + 6;
         const int16_t top = _top + 3;
-        _display.fillTriangle(
+        _view.fillTriangle(
             left, top,
             left, top + 8,
             left + 4, top + 4,
@@ -169,13 +169,13 @@ public:
     void DrawButton() override {
         int16_t left = _left + 7;
         const int16_t top = _top + 3;
-        _display.fillTriangle(
+        _view.fillTriangle(
             left, top,
             left, top + 8,
             left - 4, top + 4,
             0);
         left += 5;
-        _display.fillTriangle(
+        _view.fillTriangle(
             left, top,
             left, top + 8,
             left - 4, top + 4,
@@ -192,13 +192,13 @@ public:
     void DrawButton() override {
         int16_t left = _left + 3;
         const int16_t top = _top + 3;
-        _display.fillTriangle(
+        _view.fillTriangle(
             left, top,
             left, top + 8,
             left + 4, top + 4,
             0);
         left += 5;
-        _display.fillTriangle(
+        _view.fillTriangle(
             left, top,
             left, top + 8,
             left + 4, top + 4,

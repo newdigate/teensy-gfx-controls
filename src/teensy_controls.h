@@ -23,6 +23,19 @@ public:
     virtual ~TeensyControl() {
     }
 
+    virtual void Initialize() {
+        _needsRedraw = true;
+        for (auto && child : _children){
+            child->Initialize();
+        }
+    }
+
+    virtual void Uninitialize () {
+        for (auto && child : _children){
+            child->Uninitialize();
+        }
+    }
+
     virtual void Update(unsigned millis) {
         if (f_update != nullptr) {
             f_update();
@@ -39,14 +52,11 @@ public:
         }
     }
 
-    virtual void ValueScroll(const bool forward) {
-    }
+    virtual void ValueScroll(const bool forward) { }
     
-    virtual void ButtonDown(uint8_t buttonNumber) {
-    }
+    virtual void ButtonDown(uint8_t buttonNumber) { }
 
-    virtual void IndexScroll(const bool forward) {
-    }
+    virtual void IndexScroll(const bool forward) { }
 
     virtual void NoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) { }
     virtual void NoteOff(uint8_t channel, uint8_t pitch, uint8_t velocity) { }
@@ -217,7 +227,7 @@ public:
     }
 
     void DrawBackground() {
-        _display.fillRect(_left, _top, _width, _height, _colorMenuItemBackground);
+        _view.fillRect(_left, _top, _width, _height, _colorMenuItemBackground);
         DrawMenuItemBackground(_selectedIndex, _colorMenuItemBackgroundSelected);
     }
     void DrawMenuItemBackground(const int index, const uint16_t color) {
@@ -248,6 +258,7 @@ public:
             //_needsRedraw = true;
             if (ScrollIfNeeded()) {
                 _needsRedraw = true;
+                ForceRedraw();
             } else {
                 DrawMenuItemBackground(previousSelectedIndex, _colorMenuItemBackground);
                 DrawMenuItemBackground(_selectedIndex, _colorMenuItemBackgroundSelected);

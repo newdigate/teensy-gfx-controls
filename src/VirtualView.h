@@ -11,12 +11,12 @@
 class VirtualView : public View {
 public:
     VirtualView(View &actualDisplay, int16_t left, int16_t top, uint16_t width, uint16_t height)
-    :   View(width, height),
-        _display(actualDisplay),
-        _left(left),
-        _top(top),
-        _width(width),
-        _height(height)
+    : View(width, height),
+      _view(actualDisplay),
+      _left(left),
+      _top(top),
+      _width(width),
+      _height(height)
     {
         _displayclipx1 = 0;
         _displayclipx2 = _width-1;
@@ -67,7 +67,7 @@ public:
 
         x = x - _xOffset;
         y = y - _yOffset;
-        _display.drawPixel(x + _left, y + _top, color);
+        _view.drawPixel(x + _left, y + _top, color);
     }
 
     void drawPixel(int16_t x, int16_t y, uint16_t color) override
@@ -107,7 +107,7 @@ public:
     void SetWidth(uint16_t width) { _width = width; }
     void SetHeight(uint16_t height) { _height = height; }
 protected:
-    View &_display;
+    View &_view;
     int16_t _left;
     int16_t _top;
     int16_t _xOffset = 0;

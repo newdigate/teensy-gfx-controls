@@ -139,15 +139,15 @@ public:
             }
 
             if (_highlighted) {
-                _display.fillRoundRect(_left, _top, _width, _height, 2, 0x255A );
+                _view.fillRoundRect(_left, _top, _width, _height, 2, 0x255A );
             }
-            _display.drawFastHLine(point1x + 1,   point1y,        swidth,                    segments[0]? colors[3] : colors[1]);
-            _display.drawFastVLine(point2x,       point2y + 1,    sheight,                   segments[1]? colors[3] : colors[1]);
-            _display.drawFastVLine(point4x,       point4y + 1,    sheight,                   segments[2]? colors[3] : colors[1]);
-            _display.drawFastHLine(point5x + 1,   point5y,        swidth,                    segments[3]? colors[3] : colors[1]);
-            _display.drawFastVLine(point3x,       point3y + 1,    sheight,                   segments[4]? colors[3] : colors[1]);
-            _display.drawFastVLine(point1x,       point1y + 1,    sheight,                   segments[5]? colors[3] : colors[1]);
-            _display.drawFastHLine(point3x + 1,   point3y,        swidth,                    segments[6]? colors[3] : colors[1]);
+            _view.drawFastHLine(point1x + 1,   point1y,        swidth,                    segments[0]? colors[3] : colors[1]);
+            _view.drawFastVLine(point2x,       point2y + 1,    sheight,                   segments[1]? colors[3] : colors[1]);
+            _view.drawFastVLine(point4x,       point4y + 1,    sheight,                   segments[2]? colors[3] : colors[1]);
+            _view.drawFastHLine(point5x + 1,   point5y,        swidth,                    segments[3]? colors[3] : colors[1]);
+            _view.drawFastVLine(point3x,       point3y + 1,    sheight,                   segments[4]? colors[3] : colors[1]);
+            _view.drawFastVLine(point1x,       point1y + 1,    sheight,                   segments[5]? colors[3] : colors[1]);
+            _view.drawFastHLine(point3x + 1,   point3y,        swidth,                    segments[6]? colors[3] : colors[1]);
 
             _needsRedraw = false;
         }
@@ -193,8 +193,8 @@ public:
         if (_needsRedraw) {
             int16_t point1x = _left + _width/2 -1,               point1y = _top + _height/4;
             int16_t point2x = _left + _width/2 - 1,              point2y = _top + _height*3/4;
-            _display.drawFastVLine(point1x, point1y, 2, _indictorOn? colors[2]:colors[1]);
-            _display.drawFastVLine(point2x, point2y, 2, _indictorOn? colors[2]:colors[1]);
+            _view.drawFastVLine(point1x, point1y, 2, _indictorOn? colors[2]:colors[1]);
+            _view.drawFastVLine(point2x, point2y, 2, _indictorOn? colors[2]:colors[1]);
             _needsRedraw = false;
         }
     }
@@ -268,14 +268,14 @@ protected:
     std::vector<TeensySevenSegment*> _segments;
 
     void AddSegment() {
-        auto && segment = new TeensySevenSegment(_display, 5, _height, _left + _offsetx, _top);
+        auto && segment = new TeensySevenSegment(_view, 5, _height, _left + _offsetx, _top);
         _children.push_back(segment);
         _segments.push_back(segment);
         _offsetx += 7;
     }
 
     void AddSeparator() {
-        auto && separator = new TeensySevenSegmentSeparator(_display, 2, _height, _left + _offsetx, _top);
+        auto && separator = new TeensySevenSegmentSeparator(_view, 2, _height, _left + _offsetx, _top);
         _children.push_back(separator);
         _offsetx += 3;
     }
@@ -345,14 +345,14 @@ protected:
     std::vector<TeensySevenSegment*> _segments;
 
     void AddSegment() {
-        auto && segment = new TeensySevenSegment(_display, 5, _height, _left + _offsetx, _top);
+        auto && segment = new TeensySevenSegment(_view, 5, _height, _left + _offsetx, _top);
         _children.push_back(segment);
         _segments.push_back(segment);
         _offsetx += 7;
     }
 
     void AddSeparator() {
-        auto && separator = new TeensySevenSegmentSeparator(_display, 2, _height, _left + _offsetx, _top);
+        auto && separator = new TeensySevenSegmentSeparator(_view, 2, _height, _left + _offsetx, _top);
         _children.push_back(separator);
         _offsetx += 3;
     }

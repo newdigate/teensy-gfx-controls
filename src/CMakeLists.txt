@@ -9,6 +9,7 @@ set(SOURCE_FILES
 set(HEADER_FILES
 		teensy_controls.h
 		scenecontroller.h
+		SDDirectoryFileNameIndex.h
 		VirtualView.h
 		rect.h
 		)
