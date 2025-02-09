@@ -112,14 +112,14 @@ Scene *editScene = new Scene(virtualView, 128, 128, 0, 0,
                              16, 16,
                              [](unsigned millis) { },
                              [] { virtualView.fillScreen(ST7735_RED); });
-
+bool isRecording = false;
 TeensyButtonBar button_bar(virtualView, 128, 16, 0, 0);
 TeensyButtonRewind button_rewind(button_bar);
 TeensyButtonPlay button_play(button_bar);
 TeensyButtonPause button_pause(button_bar);
 TeensyButtonStop button_stop(button_bar);
 TeensyButtonFastfwd button_fastfwd(button_bar);
-TeensyButtonRecord button_record(button_bar);
+TeensyButtonRecord button_record(button_bar, isRecording);
 int16_t segmentx = 0;
 TeensySevenSegment s1(virtualView, 5, 8, segmentx++ * 7, 24);
 TeensySevenSegment s2(virtualView, 5, 8, segmentx++ * 7, 24);
