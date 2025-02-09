@@ -68,21 +68,17 @@ protected:
 
 class TeensyButtonRecord : public TeensyButton {
 public:
-    TeensyButtonRecord(View& view) : TeensyButton(view, 13, 16, 0, 0),
+    TeensyButtonRecord(View& view, bool &isRecording) : TeensyButton(view, 13, 16, 0, 0),
     _lastMilliseconds(0),
     _indicatorOn(true),
-    _isRecording(false)
+    _isRecording(isRecording)
     {
     }
 
-    void SetRecording(bool recording) {
-        if (_isRecording != recording) {
-            _isRecording = recording;
+    void Update(unsigned milliseconds) override {
+        if (_lastIsRecordingValue != _isRecording){
             _needsRedraw = true;
         }
-    }
-
-    void Update(unsigned milliseconds) override {
         TeensyButton::Update(milliseconds);
         if (!_isRecording) return;
         if (milliseconds > _lastMilliseconds + 500) {
@@ -104,19 +100,20 @@ public:
     }
 
     void ValueScroll(const bool forward) override {
-        _isRecording = !_isRecording;
-        _needsRedraw = true;
+        //_isRecording = !_isRecording;
+        //_needsRedraw = true;
     }
 
     void ButtonDown(uint8_t buttonNumber) override {
-        _isRecording = !_isRecording;
-        _needsRedraw = true;
+        //_isRecording = !_isRecording;
+        //_needsRedraw = true;
     }
 
 private:
     unsigned _lastMilliseconds;
     bool _indicatorOn;
-    bool _isRecording;
+    bool &_isRecording;
+    bool _lastIsRecordingValue = false;
 };
 
 class TeensyButtonStop : public TeensyButton {
@@ -276,7 +273,7 @@ protected:
 
 class TeensyMediaButtonBar : public TeensyButtonBar {
 public:
-    TeensyMediaButtonBar(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y) :
+    TeensyMediaButtonBar(View &view, unsigned int width, unsigned int height, unsigned int x, unsigned int y, bool &isRecording) :
                             TeensyButtonBar (view, width, height, x, y),
                             _initialized(false),
                             button_rewind(view),
@@ -284,7 +281,7 @@ public:
                             button_pause(view),
                             button_stop(view),
                             button_fastfwd(view),
-                            button_record(view)
+                            button_record(view, isRecording)
     {
     }
 

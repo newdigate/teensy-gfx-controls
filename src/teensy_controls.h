@@ -425,8 +425,10 @@ public:
     ~TeensyStringMenuItem() override = default;
 
     void Update(unsigned milliseconds) override {
+        if (!_needsRedraw) return;
         setTextSize(1);
         drawString(_label.c_str(), 0, 1);//+_top-_yOffset);
+        _needsRedraw = false;
     }
 
     void ButtonDown(unsigned char buttonNumber) override {
@@ -437,6 +439,43 @@ public:
 
 private:
     const String &_label;
+    std::function<void(int)> buttonDownEvent;
+};
+
+class TeensyCharMenuItem : public TeensyMenuItem {
+public:
+    TeensyCharMenuItem(TeensyMenu &menu,
+                       const char *stringValue,
+                       const std::function<void(uint8_t buttonNumber)>& buttonDownEvent) :
+                       TeensyMenuItem (menu, nullptr, 10, nullptr, nullptr, nullptr, buttonDownEvent), //std::bind(&TeensyStringMenuItem::ButtonDown, this, std::placeholders::_1)),
+                        _string(stringValue),
+                        buttonDownEvent(buttonDownEvent)
+    {
+    }
+
+    ~TeensyCharMenuItem() override = default;
+
+    void Update(unsigned milliseconds) override {
+        if (!_needsRedraw) return;
+        if (_string == nullptr) return;
+        setTextSize(1);
+        drawString(_string, 0, 1);//+_top-_yOffset);
+        _needsRedraw = false;
+    }
+
+    void ButtonDown(unsigned char buttonNumber) override {
+        if (buttonDownEvent) {
+            buttonDownEvent(buttonNumber);
+        }
+    }
+
+    void SetString(const char *string) {
+        _string = string;
+        _needsRedraw = true;
+    }
+
+private:
+    const char* _string;
     std::function<void(int)> buttonDownEvent;
 };
 
