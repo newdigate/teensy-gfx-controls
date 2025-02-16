@@ -6,9 +6,6 @@ include(../examples.cmake.in)
 
 include_directories(../../src)
 
-find_library(teensy_ili9341_controls NAME teensy_ili9341_controls)
-include_directories(${teensy_ili9341_controls_INCLUDE_DIR})
-
 add_definitions(-fms-extensions)
 add_definitions(-DARDUINO=146)
 
