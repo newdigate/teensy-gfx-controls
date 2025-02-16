@@ -78,7 +78,6 @@ jobs:
       with:
         repository: PaulStoffregen/Bounce2.git
         path: deps/Bounce2
-        fetch-depth: 1
         ref: master
 
     - name: download toolchain
