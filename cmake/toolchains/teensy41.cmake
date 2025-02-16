@@ -14,4 +14,5 @@ FetchContent_Declare(teensy_cmake_macros
         GIT_TAG        noinstall
 )
 FetchContent_MakeAvailable(teensy_cmake_macros)
+include(${teensy_cmake_macros_SOURCE_DIR}/CMakeLists.txt)
 set(BUILD_FOR_TEENSY ON)
