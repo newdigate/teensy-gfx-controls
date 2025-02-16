@@ -20,14 +20,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
-    - uses: actions/checkout@v2
-      with:
-        repository: PaulStoffregen/cores.git
-        path: deps/cores
-        fetch-depth: 1
-        ref: master
-
     - uses: actions/checkout@v2
       with:
         repository: newdigate/teensy-variable-playback

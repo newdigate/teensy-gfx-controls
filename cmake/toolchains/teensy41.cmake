@@ -9,6 +9,13 @@ set(DEPSPATH "/home/runner/work/teensy-gfx-controls/teensy-gfx-controls/deps")
 set(COREPATH "${DEPSPATH}/cores/teensy4/")
 add_definitions(-DTEENSY_VERSION=${TEENSY_VERSION})
 include(FetchContent)
+
+FetchContent_Declare(teensy_cores
+        GIT_REPOSITORY https://github.com/PaulStoffregen/cores
+        GIT_TAG        master
+)
+FetchContent_MakeAvailable(teensy_cores)
+
 FetchContent_Declare(teensy_cmake_macros
         GIT_REPOSITORY https://github.com/newdigate/teensy-cmake-macros
         GIT_TAG        noinstall
