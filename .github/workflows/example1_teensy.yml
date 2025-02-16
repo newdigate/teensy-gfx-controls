@@ -11,6 +11,8 @@ on:
       - '.github/workflows/ubuntu_x64_cmake.yml'
     branches-ignore:    
       - 'feature/next'
+env:
+  BUILD_TYPE: Release
 jobs:
   build:
 

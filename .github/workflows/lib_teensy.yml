@@ -11,6 +11,8 @@ on:
       - '.github/workflows/lib_linux.yml'
     branches-ignore:    
     - 'feature/next'
+env:
+  BUILD_TYPE: Release
 jobs:
   build:
 
