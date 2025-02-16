@@ -36,7 +36,7 @@ if (BUILD_EXAMPLE)
         DeclareAndFetch(teensy_ili9341_controls         https://github.com/newdigate/teensy_ili9341_controls master src)
         DeclareAndFetch(arduino_tftpianoview            https://github.com/newdigate/arduino-tftpianoview.git feature/generic src)
 
-        add_subdirectory(examples/basic)
+        #add_subdirectory(examples/basic)
         add_subdirectory(examples/demo)
         add_subdirectory(examples/view_example)
         add_subdirectory(examples/menu)
