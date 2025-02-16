@@ -81,6 +81,9 @@ jobs:
         rm /tmp/gcc-arm-none-eabi.tar.bz2
         ls
 
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{github.workspace}}/build
+
     - name: Configure CMake
       shell: bash
       working-directory: ${{github.workspace}}/build
