@@ -8,5 +8,11 @@ set(DEPSPATH "/home/runner/work/teensy-gfx-controls/teensy-gfx-controls/deps")
 #set(DEPSPATH "/Users/nicholasnewdigate/Development/github/newdigate/temp_dep")
 set(COREPATH "${DEPSPATH}/cores/teensy4/")
 add_definitions(-DTEENSY_VERSION=${TEENSY_VERSION})
-find_package(teensy_cmake_macros)
+include(FetchContent)
+FetchContent_Declare(teensy_cmake_macros
+        GIT_REPOSITORY https://github.com/newdigate/teensy-cmake-macros
+        GIT_TAG        main
+)
+FetchContent_MakeAvailable(teensy_cmake_macros)
+include(${teensy_cmake_macros_SOURCE_DIR}/cmake/teensy.cmake)
 set(BUILD_FOR_TEENSY ON)
