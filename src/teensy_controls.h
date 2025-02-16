@@ -9,7 +9,9 @@
 #include "rect.h"
 #include <Bounce2.h>
 #include <iostream>
-
+#if (BUILD_FOR_LINUX)
+using namespace Bounce2;
+#endif
 class TeensyControl : public VirtualView {
 public:
     TeensyControl(View &view, std::function<void()> updateFn, unsigned int width, unsigned int height, unsigned int x, unsigned int y) :
@@ -86,7 +88,7 @@ protected:
 template< typename TDisplay >
 class ViewController {
 public:
-    ViewController(TDisplay &display, Encoder &encoderUpDown, Encoder &encoderLeftRight, Bounce2::Button *button = nullptr, std::function< void() > fnButtonPressed = nullptr) : 
+    ViewController(TDisplay &display, Encoder &encoderUpDown, Encoder &encoderLeftRight, Button *button = nullptr, std::function< void() > fnButtonPressed = nullptr) :
         _display(display),
         _controls(),
         _dialogs(),
@@ -204,7 +206,7 @@ protected:
     
     Encoder &_encoderUpDown;
     Encoder &_encoderLeftRight;
-    Bounce2::Button *_button;
+    Button *_button;
     // encoder stuff
     long Position = 0, oldPosition = 0;
     long PositionY = 0, oldPositionY = 0;

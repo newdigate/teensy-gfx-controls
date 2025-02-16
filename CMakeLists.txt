@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(teensy-gfx-controls)
-IF (NOT DEFINED BUILD_FOR_TEENSY)
+IF (NOT BUILD_FOR_TEENSY)
     set(BUILD_FOR_LINUX 1)
     add_definitions(-DBUILD_FOR_LINUX)
     include(cmake_declare_and_fetch.cmake.in)
