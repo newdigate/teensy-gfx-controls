@@ -223,7 +223,7 @@ public:
     void DrawIcon(const uint16_t * icon, int x, int y, int iconWidth, int iconHeight) {
         for (int i=0; i < iconWidth; i++)
             for (int j=0; j < iconHeight; j++)
-                _view.Pixel(x+i, y+j, icon[i + (j * iconWidth)]);
+                _view.drawPixel(x+i, y+j, icon[i + (j * iconWidth)]);
     }
 
     virtual void NoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) {
