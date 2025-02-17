@@ -3,10 +3,12 @@ set(CPU_CORE_SPEED 600000000 CACHE STRING "Set to 24000000, 48000000, 72000000 o
 set(CMAKE_EXE_LINKER_FLAGS "--specs=nano.specs" CACHE INTERNAL "")
 #teensy compiler options
 set(COMPILERPATH "/opt/gcc-arm-none-eabi-10.3-2021.10/bin/")
-#set(COMPILERPATH "/Applications/ARM_10/bin/")
-set(DEPSPATH "/home/runner/work/teensy-gfx-controls/teensy-gfx-controls/deps")
-#set(DEPSPATH "/Users/nicholasnewdigate/Development/github/newdigate/temp_dep")
-set(COREPATH "${DEPSPATH}/cores/teensy4/")
-add_definitions(-DTEENSY_VERSION=${TEENSY_VERSION})
-find_package(teensy_cmake_macros)
+#set(COMPILERPATH "/Applications/ARM/bin/")
+
 set(BUILD_FOR_TEENSY ON)
+set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_SYSTEM_PROCESSOR arm)
+set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
+set(CMAKE_C_COMPILER ${COMPILERPATH}arm-none-eabi-gcc)
+set(CMAKE_CXX_COMPILER ${COMPILERPATH}arm-none-eabi-g++)
+set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_C_COMPILER} <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")

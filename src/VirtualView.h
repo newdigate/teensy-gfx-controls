@@ -11,12 +11,12 @@
 class VirtualView : public View {
 public:
     VirtualView(View &actualDisplay, int16_t left, int16_t top, uint16_t width, uint16_t height)
-    :   View(width, height),
-        _display(actualDisplay),
-        _left(left),
-        _top(top),
-        _width(width),
-        _height(height)
+    : View(width, height),
+      _view(actualDisplay),
+      _left(left),
+      _top(top),
+      _width(width),
+      _height(height)
     {
         _displayclipx1 = 0;
         _displayclipx2 = _width-1;
@@ -38,7 +38,7 @@ public:
     }
 
     virtual void ClearBackground() {
-        fillRect(_left, _top, _width, _height, ST7735_BLACK);
+        fillRect(_left, _top, _width, _height, 0);
     }
 
     void XOffset(int16_t xOffset) {
@@ -63,25 +63,11 @@ public:
         YOffset(_yOffset + deltaYOffset );
     }
 
-    virtual void Pixel(int16_t x, int16_t y, uint16_t color) override{
+    void Pixel(int16_t x, int16_t y, uint16_t color) override{
 
-        if (_isClipping) {
-            if ((x < _clipWindowX1) || (x > _clipWindowX2) || (y < _clipWindowY1 + _yOffset) || (y > _clipWindowY2 + _yOffset))
-                return;
-        }
-        if (_isMasking) {
-            for (auto && rect : _maskOutAreas)
-                if (
-                    (x >= rect->_x1) 
-                    && (x < rect->_x2) 
-                    && (y >= rect->_y1)  
-                    && (y < rect->_y2))
-                    return;
-        }
-        
         x = x - _xOffset;
         y = y - _yOffset;
-        _display.drawPixel(x + _left, y + _top, color);
+        _view.drawPixel(x + _left, y + _top, color);
     }
 
     void drawPixel(int16_t x, int16_t y, uint16_t color) override
@@ -108,13 +94,6 @@ public:
     }
 
     void drawString(const char *str, int x, int y) {
-         if (false && _isClipping) {
-            int16_t left,top;
-            uint16_t width, height;
-            _display.getTextBounds(str, 0, 0, &left, &top, &width, &height);
-            //if (isInRect(x, y, _clipWindowX1, _clipWindowY1, _clipWindowX2, _clipWindowY2))
-            //    return;
-        }
         View::drawString(str, x , y);
     }
 
@@ -127,19 +106,8 @@ public:
     void SetTop(int16_t top) { _top = top; }
     void SetWidth(uint16_t width) { _width = width; }
     void SetHeight(uint16_t height) { _height = height; }
-    void SetIsMasking(bool isMasking) { _isMasking = isMasking; };
-    void AddMaskingArea(int x0, int y0, int x1, int y1) {
-        _maskOutAreas.push_back(new rect(x0, y0, x1, y1) );
-    };
-    
-    void ClearMaskingAreas() {
-        for (auto & maskOutArea : _maskOutAreas) {
-            delete maskOutArea;
-        }
-        _maskOutAreas.clear();
-    }
 protected:
-    View &_display;
+    View &_view;
     int16_t _left;
     int16_t _top;
     int16_t _xOffset = 0;
@@ -149,8 +117,6 @@ protected:
 
     bool _isClipping = true;
     int _clipWindowX1 = 0, _clipWindowY1 = 0, _clipWindowX2 = 0, _clipWindowY2 = 0;
-    bool _isMasking = false;
-    std::vector<rect *> _maskOutAreas = std::vector<rect *>();
 
     inline bool isInRect(int x, int y, int left, int top, int right, int bottom) {
         if (x < left)

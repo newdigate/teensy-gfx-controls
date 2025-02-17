@@ -1,0 +1,4 @@
+add_definitions(-fms-extensions)
+add_definitions(-DArduino=146)
+
+include(../../cmake/opengl.cmake)

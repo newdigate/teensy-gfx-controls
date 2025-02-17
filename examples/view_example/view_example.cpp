@@ -52,7 +52,8 @@ void setup() {
 }
 
 void loop() {
-  viewController.Update();
+  unsigned currentMillis = millis();
+  viewController.Update(currentMillis);
   pianoDisplay1a.keyDown(64);
 }
 

@@ -23,9 +23,7 @@ VirtualView framebuffer = VirtualView(Display, 10, 10, 108, 108);
 ViewController< VirtualView > viewController(framebuffer, encoderUpDown, encoderLeftRight);
 
 void setup() {
-
   Serial.begin(9600);
-
   button.attach( 10, 10 ); // USE EXTERNAL PULL-UP
   button.interval(5); 
   button.setPressedState(LOW); 

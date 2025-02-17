@@ -4,14 +4,15 @@
 #include <stack>
 #include <functional>
 #include "teensy_controls.h"
+#include "MIDI.h"
 
-class BaseScene {
+class BaseScene : public TeensyControl {
 public:
-    BaseScene(
+    BaseScene(View &view, unsigned int width, unsigned int height, unsigned int left, unsigned int top,
             const uint16_t * iconOn, 
             const uint16_t * iconOff, 
             unsigned int iconWidth, 
-            unsigned int iconHeight) :
+            unsigned int iconHeight) : TeensyControl(view, nullptr, width, height, left, top),
         _iconWidth(iconWidth),
         _iconHeight(iconHeight),
         _iconOn(iconOn), 
@@ -21,16 +22,6 @@ public:
 
     virtual ~BaseScene() {
     }
-
-    virtual void Update() {}
-    virtual void InitScreen () {}
-    virtual void UninitScreen () {}
-
-    virtual void ButtonPressed(unsigned buttonIndex) {}
-    virtual void Rotary1Changed(bool forward) {}
-    virtual void Rotary2Changed(bool forward) {}
-    virtual bool HandleNoteOnOff(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) { return false; }
-    virtual bool HandleControlChange(uint8_t channel, uint8_t data1, uint8_t data2) { return false; }
 
     const uint16_t * GetIcon(bool on) {
         return (on)? _iconOn : _iconOff;
@@ -47,12 +38,12 @@ protected:
 
 class Scene : public BaseScene {
 public:
-    Scene(
+    Scene(View &view, unsigned int width, unsigned int height, unsigned int left, unsigned int top,
             const uint16_t * iconOn, 
             const uint16_t * iconOff, 
             unsigned int iconWidth, 
             unsigned int iconHeight, 
-            std::function<void()> update = nullptr, 
+            std::function<void(unsigned)> update = nullptr,
             std::function<void()> initScreen = nullptr, 
             std::function<void()> uninitScreen = nullptr, 
             std::function<void(unsigned)> buttonPressed = nullptr, 
@@ -60,7 +51,7 @@ public:
             std::function<void(bool)> rotary2Changed = nullptr,
             std::function<bool(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity)> handleNoteOnOff = nullptr,
             std::function<bool(uint8_t channel, uint8_t data1, uint8_t data2)> handleControlChange = nullptr) 
-        : BaseScene(iconOn, iconOff, iconWidth, iconHeight),
+        : BaseScene(view, width, height, left, top, iconOn, iconOff, iconWidth, iconHeight),
         f_update(update),
         f_initScreen(initScreen),
         f_uninitScreen(uninitScreen),
@@ -75,7 +66,7 @@ public:
     virtual ~Scene() {
     }
 
-    void SetUpdateFunction(std::function<void()> updateFn) {
+    void SetUpdateFunction(std::function<void(unsigned)> updateFn) {
         f_update = updateFn;
     }
 
@@ -91,59 +82,70 @@ public:
         f_rotary2Changed = rotaryChangedFn;
     }
 
-    void Update() override {
+    void Update(unsigned milliseconds) override {
+        BaseScene::Update(milliseconds);
         if (f_update != nullptr) {
-            f_update();
+            f_update(milliseconds);
         }
     }
 
-    void InitScreen() override {
+    void Initialize() override {
+        BaseScene::Initialize();
         if (f_initScreen != nullptr) {
             f_initScreen();
         }
     }
 
-    void UninitScreen() override {
+    void Uninitialize() override {
         if (f_uninitScreen != nullptr) {
             f_uninitScreen();
         }
+        BaseScene::Uninitialize();
     }
 
-
-    void ButtonPressed(unsigned index) override {
+    void ButtonDown(unsigned char index) override {
         if (f_buttonPressed != nullptr) {
             f_buttonPressed(index);
         }
+        BaseScene::ButtonDown(index);
     }
 
-    void Rotary1Changed(bool forward) override {
+    void IndexScroll(bool forward) override {
         if (f_rotary1Changed != nullptr) {
             f_rotary1Changed(forward);
         }
+        BaseScene::IndexScroll(forward);
     }
 
-    void Rotary2Changed(bool forward) override {
+    void ValueScroll(bool forward) override {
         if (f_rotary2Changed != nullptr) {
             f_rotary2Changed(forward);
         }
+        BaseScene::ValueScroll(forward);
     }
 
-    bool HandleNoteOnOff(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) override {
+    void NoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) override {
         if (f_handleNoteOnOff != nullptr) {
-            return f_handleNoteOnOff(noteDown, channel, pitch, velocity);
+            f_handleNoteOnOff(true, channel, pitch, velocity);
         }
-        return false;
+        BaseScene::NoteOn(channel, pitch, velocity);
+    }
+    void NoteOff(uint8_t channel, uint8_t pitch, uint8_t velocity) override {
+        if (f_handleNoteOnOff != nullptr) {
+            f_handleNoteOnOff(false, channel, pitch, velocity);
+        }
+        BaseScene::NoteOff(channel, pitch, velocity);
     }
 
-    bool HandleControlChange(uint8_t channel, uint8_t data1, uint8_t data2) override {
+    void ControlChange(uint8_t channel, uint8_t data1, uint8_t data2) override {
         if (f_handleControlChange != nullptr) {
-            return f_handleControlChange(channel, data1, data2);
+            f_handleControlChange(channel, data1, data2);
         }
-        return false;
+        BaseScene::ControlChange(channel, data1, data2);
     }
 
 private:
-    std::function<void()> f_update = nullptr;
+    std::function<void(unsigned)> f_update = nullptr;
     std::function<void()> f_initScreen = nullptr;
     std::function<void()> f_uninitScreen = nullptr;
 
@@ -151,162 +153,273 @@ private:
     std::function<void(bool)> f_rotary1Changed = nullptr;
     std::function<void(bool)> f_rotary2Changed = nullptr;
 
-    std::function<bool(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity)> f_handleNoteOnOff = nullptr;
-    std::function<bool(uint8_t channel, uint8_t data1, uint8_t data2)> f_handleControlChange = nullptr;
+    std::function<void(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity)> f_handleNoteOnOff = nullptr;
+    std::function<void(uint8_t channel, uint8_t data1, uint8_t data2)> f_handleControlChange = nullptr;
 };
 
-class BaseSceneController {
+class BaseSceneHostControl : public TeensyControl {
 public:
-    BaseSceneController() : _scenes()
+    BaseSceneHostControl(View &view, unsigned int width, unsigned int height, unsigned int left, unsigned int top)
+        : TeensyControl(view, nullptr, width, height, left, top),
+        _menuEnabled(false)
     {
     }
 
-    virtual ~BaseSceneController() {
-    }
+    ~BaseSceneHostControl() override = default;
 
-    void SetActive(bool active) {
-        if (active == _active)
+    void SetTopMenuActive(bool active) {
+        if (active == _topMenuActive)
             return;
-        _active = active;
+        _topMenuActive = active;
         DrawSceneMenu();
+        _currentSceneNeedsInit = true;
     }
     
-    bool Active() {
-        return _active;
+    bool IsTopMenuActive() {
+        return _topMenuActive;
     }
 
     void SetCurrentSceneIndex(int scene) {
-        _currentScene = scene;
-    }
-
-    void Update() {
-        if (!_active && _currentScene > -1) {
-            _scenes[_currentScene]->Update();
+        if (_currentScene != scene && scene > -1 && scene < _children.size()) {
+            _previousScene = _currentScene;
+            _currentScene = scene;
+            _currentSceneNeedsInit = true;
         }
     }
 
-    virtual void Process() = 0;
-
-    virtual void FillRect(int x, int y, int width, int height, uint16_t color) = 0;
-
-    virtual void DrawPixel(int x, int y, uint16_t color) = 0;
+    void Update(unsigned milliseconds) override {
+        if (!_topMenuActive && _currentScene > -1) {
+            _children[_currentScene]->Update(milliseconds);
+        }
+    }
 
     void DrawSceneMenu() {
-        if (!_active)
+        if (!_topMenuActive)
         {
-            FillRect(0, 0, 128, 16, ST7735_BLACK);
+            _view.fillRect(0, 0, 128, 16, 0);
             return;
         }
 
         int sceneIndex = 0;
 
-        int x = _scenes.size() * 16;
-        FillRect(x, 0, 128, 16, ST7735_WHITE);
+        int x = _children.size() * 16;
+        _view.fillRect(x, 0, 128, 16, 0xFFFF);
         
         x = 0;
-        for(auto&& scene : _scenes) {
+        for(auto&& scene : _children) {
             const bool sceneSelected = sceneIndex == _currentScene;
-            const uint16_t * icon = scene->GetIcon(sceneSelected);
-            DrawIcon(icon, x, 0, scene->GetIconWidth(), scene->GetIconHeight());
+            auto *baseScene = dynamic_cast<BaseScene*>(scene);
+            const uint16_t * icon = baseScene->GetIcon(sceneSelected);
+            DrawIcon(icon, x, 0, baseScene->GetIconWidth(), baseScene->GetIconHeight());
             x+=16;
             sceneIndex++;
         }
     }
-
     void AddScene(BaseScene *scene){
-        _scenes.push_back(scene);
+        _children.push_back(scene);
+        _menuEnabled = _children.size() > 1;
     }
-    
+
     void DrawIcon(const uint16_t * icon, int x, int y, int iconWidth, int iconHeight) {
         for (int i=0; i < iconWidth; i++)
             for (int j=0; j < iconHeight; j++)
-                DrawPixel(x+i, y+j, icon[i + (j * iconWidth)]);
+                _view.drawPixel(x+i, y+j, icon[i + (j * iconWidth)]);
     }
 
-    bool MidiNoteUpDown(bool noteDown, uint8_t channel, uint8_t pitch, uint8_t velocity) {
-        if (_currentScene < 0 || _currentScene >= _scenes.size())
-            return false;
-
-        return _scenes[_currentScene]->HandleNoteOnOff(noteDown, channel, pitch, velocity);
+    virtual void NoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->NoteOn(channel, pitch, velocity);
+    }
+    virtual void NoteOff(uint8_t channel, uint8_t pitch, uint8_t velocity) {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->NoteOff(channel, pitch, velocity);
+    }
+    virtual void AfterTouchPoly(byte inChannel, byte inNote, byte inValue)  {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->AfterTouchPoly(inChannel, inNote, inValue);
+    }
+    virtual void ControlChange(byte inChannel, byte inNumber, byte inValue) {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->ControlChange(inChannel, inNumber, inValue);
+    }
+    virtual void ProgramChange(byte inChannel, byte inNumber)  {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->ProgramChange(inChannel, inNumber);
+    }
+    virtual void AfterTouchChannel(byte inChannel, byte inPressure)  {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->AfterTouchChannel(inChannel, inPressure);
+    }
+    virtual void PitchBend(byte inChannel, int inValue) {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->PitchBend(inChannel, inValue);
+    }
+    virtual void SysEx(byte* inData, unsigned inSize) {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->SysEx(inData, inSize);
+    }
+    virtual void MtcQuarterFrame(byte inData)  {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->MtcQuarterFrame(inData);
+    }
+    virtual void SongPosition(unsigned inBeats)  {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->SongPosition(inBeats);
+    }
+    virtual void SongSelect(byte inSongNumber)  {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->SongSelect(inSongNumber);
+    }
+    virtual void TuneRequest()  {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->TuneRequest();
+    }
+    virtual void Clock()  {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->Clock();
+    }
+    virtual void Start()  {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->Start();
+    }
+    virtual void Continue()  {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->Continue();
+    }
+    virtual void Stop()  {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->Stop();
+    }
+    virtual void ActiveSensing()  {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->ActiveSensing();
+    }
+    virtual void SystemReset() {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->SystemReset();
+    }
+    virtual void Tick()  {
+        if (_currentScene < 0 || _currentScene >= _children.size())
+            return ;
+        _children[_currentScene]->Tick();
     }
 
-    bool MidiControlChange(uint8_t channel, uint8_t data1, uint8_t data2) {
-        if (_currentScene < 0 || _currentScene >= _scenes.size())
-            return false;
-
-        return _scenes[_currentScene]->HandleControlChange(channel, data1, data2);
-    }
 protected:
-    bool _active = false;
-    std::vector< BaseScene* > _scenes;
+    bool _topMenuActive = false;
     int _currentScene = -1;
     int _previousScene = -1;
+    bool _menuEnabled;
+    bool _currentSceneNeedsInit = true;
+
 };
 
-template< typename TDisplay, typename TEncoder, typename TButton >
-class SceneController : public BaseSceneController {
+template<class TEncoder, class TButton, class TMidiTransport>
+class SceneHostControl : public BaseSceneHostControl {
 public:
-    SceneController(TDisplay &display, TEncoder &encoderUpDown, TEncoder &encoderLeftRight, TButton &button, TButton &button2, TButton &button3) : 
-        BaseSceneController(),
-        _display(display),
-        _encoderUpDown(encoderUpDown),
-        _encoderLeftRight(encoderLeftRight),
-        _button(button),
-        _button2(button2),
-        _button3(button3)
-    {
+    SceneHostControl(View &view, unsigned int width, unsigned int height, unsigned int left, unsigned int top,
+                     TEncoder &encoderUpDown,
+                     TEncoder &encoderLeftRight,
+                     TButton &button,
+                     TButton &button2,
+                     TButton &button3,
+                     midi::MidiInterface<TMidiTransport> &midi) :
+                        BaseSceneHostControl(view, width, height, left, top),
+                       _button(button),
+                       _button2(button2),
+                       _button3(button3),
+                       _encoderUpDown(encoderUpDown),
+                       _encoderLeftRight(encoderLeftRight),
+                       _midi(midi)
+   {
+        _midi.setHandleNoteOn( handleNoteOn );
+        _midi.setHandleNoteOff( handleNoteOff );
+        _midi.setHandleClock(  handleClock );
+        _midi.setHandleContinue( handleContinue );
+        _midi.setHandleStart( handleStart );
+        _midi.setHandleStop(handleStop );
+        _midi.setHandleTick(handleTick);
+        _midi.setHandleActiveSensing(handleActiveSensing);
+        _midi.setHandleControlChange(handleControlChange);
+        _midi.setHandlePitchBend(handlePitchBend);
+        _midi.setHandleProgramChange(handleProgramChange);
+        _midi.setHandleSongPosition(handleSongPosition);
+        _midi.setHandleSongSelect(handleSongSelect);
+        _midi.setHandleSystemExclusive(handleSysEx);
+        _midi.setHandleSystemReset(handleSystemReset);
+        _midi.setHandleTuneRequest(handleTuneRequest);
+        _midi.setHandleAfterTouchChannel(handleAfterTouchChannel);
+        _midi.setHandleAfterTouchPoly(handleAfterTouchPoly);
+        _midi.setHandleTimeCodeQuarterFrame(handleMtcQuarterFrame);
     }
 
-    virtual ~SceneController() {
-    }
+    ~SceneHostControl() override {
+       // _instances.erase(std::remove(_instances.begin(), _instances.end(), this), _instances.end());
+    };
 
-    virtual void Process() override {
+    void Update(unsigned milliseconds) override {
         _button.update();
         _button2.update();
         _button3.update();
 
         if (_button.changed() && !_button.fell()) {
             // button has been pressed...
-            if (!_active) {
-                _active = true;
+            if (!_topMenuActive && _menuEnabled) {
+                _topMenuActive = true;
                 _previousScene = _currentScene;
+                _currentSceneNeedsInit = true;
                 DrawSceneMenu();
             } else {
-                _active = false;
+                _topMenuActive = false;
                 if (_previousScene != _currentScene) {
                     if (_previousScene > -1) {
                         //Serial.print("UninitScreen:");
                         //Serial.println(_previousScene);
-                        _scenes[_currentScene]->UninitScreen(); 
+                        _children[_currentScene]->Uninitialize();
+                        _previousScene = -1;
                     }
-                    _scenes[_currentScene]->InitScreen(); 
+                    _children[_currentScene]->Initialize();
+                } else if (_currentSceneNeedsInit) {
+                    _children[_currentScene]->Initialize();
+                    _children[_currentScene]->Update(milliseconds);
                 } else
-                    _scenes[_currentScene]->Update(); 
+                    _children[_currentScene]->Update(milliseconds);
             }
             //Serial.println(_active? "Open Menu" : "Close Menu");
             return;
         }
 
         if (_button2.changed() && !_button2.fell()) {
-            if (_dialogs.size() > 0){
-                _dialogs.top()->ButtonDown(2);
-            } else 
             if (_currentScene > -1) {
-                _scenes[_currentScene]->ButtonPressed(2); 
+                _children[_currentScene]->ButtonDown(2);
             }
         }
 
         if (_button3.changed() && !_button3.fell()) {
-            if (_dialogs.size() > 0){
-                _dialogs.top()->ButtonDown(3);
-            } else 
             if (_currentScene > -1) {
-                _scenes[_currentScene]->ButtonPressed(3); 
+                _children[_currentScene]->ButtonDown(3);
             }
         }
 
         bool left = false, right = false, up = false, down = false;
-        Position = _encoderLeftRight.read();
+        Position = _encoderLeftRight.read() / 4;
         if ((Position - oldPosition) < 0) {
             left = true;
         }
@@ -314,7 +427,7 @@ public:
             right = true;
         }
 
-        PositionY = _encoderUpDown.read();
+        PositionY = _encoderUpDown.read() / 4;
         if ((PositionY - oldPositionY) > 0) {
             down = true;
         }
@@ -325,10 +438,10 @@ public:
         oldPosition = Position;
         oldPositionY = PositionY;
     
-        if (_active) {
+        if (_topMenuActive) {
             // the scene menu is visible/active
             if (right) {
-                if (_currentScene < _scenes.size()-1) {
+                if (_currentScene < _children.size() - 1) {
                     _currentScene++;
                 } else 
                     _currentScene = 0;
@@ -336,100 +449,153 @@ public:
                 if (_currentScene > 0) {
                     _currentScene--;
                 } else 
-                    _currentScene = _scenes.size()-1;
-            } 
+                    _currentScene = _children.size() - 1;
+            }
 
             if (left | right) {
                 DrawSceneMenu();
-                _currentSceneNeedsInit = true;
                 //Serial.println("_currentSceneNeedsInit = true");
             }
+
         } else 
         {
-            // the scene menu is hidden and we are rending the current scene
-            bool dialogActive = _dialogs.size() > 0;
-             
             if (_currentScene > -1) {
-
-                if (_currentSceneNeedsInit) {
-                    _currentSceneNeedsInit = false;
-                    if (dialogActive) _display.SetIsMasking(true);
-                    _scenes[_currentScene]->InitScreen();
-                    if (dialogActive) _display.SetIsMasking(false);
-                    //Serial.println("Current scene: InitScreen");
-                }
-                if (!dialogActive) {
-                    // marshall the inputs to th current scene
-                    if (up) {
-                        _scenes[_currentScene]->Rotary1Changed(false);
-                    } else if (down) {
-                        _scenes[_currentScene]->Rotary1Changed(true);
-                    }
-
-                    if (left) {
-                        _scenes[_currentScene]->Rotary2Changed(false);
-                    } else if (right) {
-                        _scenes[_currentScene]->Rotary2Changed(true);
-                    }
-                }
-                if (dialogActive)
-                    _display.SetIsMasking(true);
-                Update();
-                if (dialogActive)
-                    _display.SetIsMasking(false);
-            }
-        
-            if (dialogActive) {
                 if (up) {
-                    _dialogs.top()->DecreaseSelectedIndex();
+                    _children[_currentScene]->IndexScroll(false);
                 } else if (down) {
-                    _dialogs.top()->IncreaseSelectedIndex();
+                    _children[_currentScene]->IndexScroll(true);
                 }
 
                 if (left) {
-                    _dialogs.top()->ValueScroll(true);
+                    _children[_currentScene]->ValueScroll(false);
                 } else if (right) {
-                    _dialogs.top()->ValueScroll(false);
+                    _children[_currentScene]->ValueScroll(true);
                 }
-       
-                _dialogs.top()->Update();
-            } 
+
+                if (_currentSceneNeedsInit) {
+                    _currentSceneNeedsInit = false;
+                    _children[_currentScene]->Initialize();
+                }
+
+                _children[_currentScene]->Update(milliseconds);
+            }
+        
         }
     }
 
-    virtual void FillRect(int x, int y, int width, int height, uint16_t color) override {
-        _display.fillRect(x, y, width, height, color);
-    };
-
-    virtual void DrawPixel(int x, int y, uint16_t color) override {
-        _display.Pixel(x, y, color);
-    };
-
-    void AddDialog(TeensyControl *control){
-        _dialogs.push(control);
-        _display.AddMaskingArea(control->Left(), control->Top(), control->Left() + control->Width(), control->Top() + control->Height());
+    void Init() {
+        _instances.push_back(this);
     }
 
-    void PopDialog() {
-        if (_dialogs.size() > 0) {
-            _dialogs.pop();
-            _display.ClearMaskingAreas();
-            _currentSceneNeedsInit = true;
+    static void handleNoteOn(uint8_t channel, uint8_t pitch, uint8_t velocity) {
+        for (auto instance: _instances) {
+            instance->NoteOn(channel, pitch, velocity);
         }
     }
-
+    static void handleNoteOff(uint8_t channel, uint8_t pitch, uint8_t velocity) {
+        for (auto instance: _instances) {
+            instance->NoteOff(channel, pitch, velocity);
+        }
+    }
+    static void handleAfterTouchPoly(byte inChannel, byte inNote, byte inValue) {
+        for (auto instance: _instances) {
+            instance->AfterTouchPoly(inChannel, inNote, inValue);
+        }
+    }
+    static void handleControlChange(byte inChannel, byte inNumber, byte inValue) {
+        for (auto instance: _instances) {
+            instance->ControlChange(inChannel, inNumber, inValue);
+        }
+    }
+    static void handleProgramChange(byte inChannel, byte inNumber) {
+        for (auto instance: _instances) {
+            instance->ProgramChange(inChannel, inNumber);
+        }
+    }
+    static void handleAfterTouchChannel(byte inChannel, byte inPressure) {
+        for (auto instance: _instances) {
+            instance->AfterTouchChannel( inChannel, inPressure);
+        }
+    }
+    static void handlePitchBend(byte inChannel, int inValue) {
+        for (auto instance: _instances) {
+            instance->PitchBend(inChannel, inValue);
+        }
+    }
+    static void handleSysEx(byte* inData, unsigned inSize) {
+        for (auto instance: _instances) {
+            instance->SysEx(inData, inSize);
+        }
+    }
+    static void handleMtcQuarterFrame(byte inData) {
+        for (auto instance: _instances) {
+            instance->MtcQuarterFrame(inData);
+        }
+    }
+    static void handleSongPosition(unsigned inBeats) {
+        for (auto instance: _instances) {
+            instance->SongPosition(inBeats);
+        }
+    }
+    static void handleSongSelect(byte inSongNumber) {
+        for (auto instance: _instances) {
+            instance->SongSelect(inSongNumber);
+        }
+    }
+    static void handleTuneRequest() {
+        for (auto instance: _instances) {
+            instance->TuneRequest();
+        }
+    }
+    static void handleClock() {
+        for (auto instance: _instances) {
+            instance->Clock();
+        }
+    }
+    static void handleStart() {
+        for (auto instance: _instances) {
+            instance->Start();
+        }
+    }
+    static void handleContinue() {
+        for (auto instance: _instances) {
+            instance->Continue();
+        }
+    }
+    static void handleStop() {
+        for (auto instance: _instances) {
+            instance->Stop();
+        }
+    }
+    static void handleActiveSensing() {
+        for (auto instance: _instances) {
+            instance->ActiveSensing();
+        }
+    }
+    static void handleSystemReset() {
+            for (auto instance: _instances) {
+            instance->SystemReset();
+        }
+    }
+    static void handleTick() {
+        for (auto instance: _instances) {
+            instance->Tick();
+        }
+    }
 protected:
-    TDisplay &_display;
     TButton &_button;
     TButton &_button2;
     TButton &_button3;
     Encoder &_encoderUpDown;
     Encoder &_encoderLeftRight;
-    bool _currentSceneNeedsInit = true;
-    std::stack< TeensyControl* > _dialogs;
+    midi::MidiInterface<TMidiTransport>&_midi;
     // encoder stuff
     long Position = 0, oldPosition = 0;
     long PositionY = 0, oldPositionY = 0;
+    static std::vector<SceneHostControl*> _instances;
 };
+
+template<class TEncoder, class TButton, class TMidiTransport>
+std::vector<SceneHostControl<TEncoder, TButton, TMidiTransport>*> SceneHostControl<TEncoder, TButton, TMidiTransport>::_instances;
 
 #endif  //TEENSY_SCENE_CONTROLLER_SCENECONTROLLER_H

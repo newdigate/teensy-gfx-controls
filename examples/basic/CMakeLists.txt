@@ -1,78 +1,29 @@
 cmake_minimum_required(VERSION 3.10)
-project(basic_example)
+project(gfx_example)
 set(CMAKE_CXX_STANDARD 17)
-
-find_package(teensy_x86_stubs)
-include_directories(${teensy_x86_stubs_INCLUDE_DIR})
-
-find_package(teensy_x86_encoder_stubs)
-include_directories(${teensy_x86_encoder_stubs_INCLUDE_DIR})
-
-find_package(teensy_x86_bounce2_stubs)
-include_directories(${teensy_x86_bounce2_stubs_INCLUDE_DIR})
-
-find_package(teensy_audio_x86_stubs)
-include_directories(${teensy_audio_x86_stubs_INCLUDE_DIR})
-
-find_package(teensy_audio_x86_stubs_soundio)
-include_directories(${teensy_audio_x86_stubs_soundio_INCLUDE_DIR})
-
-find_package(teensy_audio_x86_stubs)
-include_directories(${teensy_audio_x86_stubs_INCLUDE_DIR})
-
-find_package(teensy_x86_sd_stubs)
-include_directories(${teensy_x86_sd_stubs_INCLUDE_DIR})
-
-find_package(teensy_x86_midi_stubs)
-include_directories(${teensy_x86_midi_stubs_INCLUDE_DIR})
-
-find_path(RTMIDI_INCLUDE_DIR RtMidi.h
-  PATHS
-    /usr/local/include
-    /usr/include
-    /usr/include/rtmidi)
-include_directories(${RTMIDI_INCLUDE_DIR})
-
-find_package(teensy_x86_midi_stubs_rtmidi)
-include_directories(${teensy_x86_midi_stubs_rtmidi_INCLUDE_DIR})
-
-find_package(teensy_st7735_linux_stubs)
-include_directories(${teensy_st7735_linux_stubs_INCLUDE_DIR})
-
-find_package(teensy_gfx)
-include_directories(${teensy_gfx_INCLUDE_DIR})
-
-find_package(teensy_st7735_linux_opengl)
-include_directories(${teensy_st7735_linux_extras_opengl_INCLUDE_DIR})
+include(../examples.cmake.in)
 
 include_directories(../../src)
 
-add_definitions(-fms-extensions)
-add_definitions(-DArduino=146)
+add_executable(gfx_example basic.cpp)
 
-add_executable(basic_example basic.cpp)
-
-target_link_libraries(basic_example ${teensy_x86_stubs_LIBS})
-target_link_libraries(basic_example ${teensy_x86_sd_stubs_LIBS})
-target_link_libraries(basic_example ${teensy_x86_bounce2_stubs_LIBS})
-target_link_libraries(basic_example ${teensy_x86_encoder_stubs_LIBS})
-target_link_libraries(basic_example ${teensy_audio_x86_stubs_LIBS})
-target_link_libraries(basic_example ${teensy_audio_x86_stubs_soundio_LIBS})
-target_link_libraries(basic_example -L/usr/local/lib/ rtmidi)
-target_link_libraries(basic_example ${teensy_variable_playback_LIBS})
-target_link_libraries(basic_example ${teensy_x86_midi_stubs_LIBS})
-target_link_libraries(basic_example ${teensy_x86_midi_stubs_rtmidi_LIBS})
-target_link_libraries(basic_example ${teensy_st7735_linux_stubs_LIBS})
-target_link_libraries(basic_example ${teensy_st7735_linux_extras_opengl_LIBS})
-target_link_libraries(basic_example ${teensy_x86_bounce2_stubs_LIBS})
-target_link_libraries(basic_example ${teensy_gfx_LIBS})
-
-include(../../cmake/opengl.cmake)
-target_link_libraries(basic_example ${LIBS})
-
-target_link_libraries(basic_example "-L/usr/local/lib -lsoundio")
+target_link_libraries(gfx_example teensy_x86_stubs)
+target_link_libraries(gfx_example teensy_x86_sd_stubs)
+target_link_libraries(gfx_example teensy_x86_bounce2_stubs)
+target_link_libraries(gfx_example teensy_x86_encoder_stubs)
+target_link_libraries(gfx_example teensy_audio_x86_stubs)
+target_link_libraries(gfx_example teensy_audio_x86_stubs_soundio)
+target_link_libraries(gfx_example rtmidi)
+target_link_libraries(gfx_example teensy_x86_midi_stubs)
+target_link_libraries(gfx_example teensy_x86_midi_stubs_rtmidi)
+target_link_libraries(gfx_example teensy_st7735_linux_stubs)
+target_link_libraries(gfx_example teensy_st7735_linux_opengl)
+target_link_libraries(gfx_example teensy_x86_bounce2_stubs)
+target_link_libraries(gfx_example teensy_gfx)
+target_link_libraries(gfx_example ${LIBS})
+target_link_libraries(gfx_example "-L/usr/local/lib -lsoundio")
 if  (APPLE)
-        target_link_libraries(basic_example
+        target_link_libraries(gfx_example
                 "-framework CoreServices"
                 "-framework CoreAudio"
                 "-framework Foundation"

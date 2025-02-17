@@ -119,7 +119,7 @@ void loop() {
     // update the dials
     Bits.draw(bBits);
     Volts.draw(bVolts);
-    viewController.Update();
+    viewController.Update(millis());
 
 }
 
