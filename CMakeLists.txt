@@ -21,7 +21,7 @@ ELSE()
     import_arduino_library_git(SerialFlash https://github.com/PaulStoffregen/SerialFlash.git master "" util)
     import_arduino_library_git(Wire https://github.com/PaulStoffregen/Wire.git master "" utility)
     import_arduino_library_git(arm_math https://github.com/PaulStoffregen/arm_math.git master src)
-    import_arduino_library_git(TeensyGFX https://github.com/newdigate/teensy-gfx.git main src)
+    import_arduino_library_git(TeensyGFX https://github.com/newdigate/teensy-gfx.git noinstall src)
 ENDIF()
 
 add_subdirectory(src)
