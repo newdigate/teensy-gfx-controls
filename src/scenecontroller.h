@@ -208,7 +208,7 @@ public:
         x = 0;
         for(auto&& scene : _children) {
             const bool sceneSelected = sceneIndex == _currentScene;
-            auto *baseScene = dynamic_cast<BaseScene*>(scene);
+            auto *baseScene = static_cast<BaseScene*>(scene);
             const uint16_t * icon = baseScene->GetIcon(sceneSelected);
             DrawIcon(icon, x, 0, baseScene->GetIconWidth(), baseScene->GetIconHeight());
             x+=16;
