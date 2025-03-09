@@ -20,86 +20,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/checkout@v2
-      with:
-        repository: newdigate/teensy-variable-playback
-        path: deps/teensy-variable-playback
-
-    - uses: actions/checkout@v2
-      with:
-        repository: PaulStoffregen/Audio.git
-        path: deps/Audio
-        ref: master
-
-    - uses: actions/checkout@v2
-      with:
-        repository: PaulStoffregen/SerialFlash
-        path: deps/SerialFlash
-        ref: master
-
-    - uses: actions/checkout@v2
-      with:
-        repository: PaulStoffregen/USBHost_t36
-        path: deps/USBHost_t36
-        ref: master
-
-    - uses: actions/checkout@v2
-      with:
-        repository: PaulStoffregen/ST7735_t3
-        path: deps/ST7735_t3
-        ref: master
-
-    - uses: actions/checkout@v2
-      with:
-        repository: PaulStoffregen/Wire
-        path: deps/Wire
-        fetch-depth: 1
-        ref: master
-
-    - uses: actions/checkout@v2
-      with:
-        repository: PaulStoffregen/SD.git
-        path: deps/SD
-        fetch-depth: 1
-        ref: Juse_Use_SdFat
-
-    - uses: actions/checkout@v2
-      with:
-        repository: PaulStoffregen/arm_math.git
-        path: deps/arm_math
-        ref: master
-
-    - uses: actions/checkout@v2
-      with:
-        repository: PaulStoffregen/SdFat.git
-        path: deps/SdFat_PaulStoffregen
-        fetch-depth: 1
-        ref: master
-
-    - uses: actions/checkout@v2
-      with:
-        repository: PaulStoffregen/SPI.git
-        path: deps/SPI
-        fetch-depth: 1
-        ref: master
-
-    - uses: actions/checkout@v2
-      with:
-        repository: PaulStoffregen/Encoder.git
-        path: deps/Encoder
-        ref: master
-
-    - uses: actions/checkout@v2
-      with:
-        repository: PaulStoffregen/Bounce2.git
-        path: deps/Bounce2
-        fetch-depth: 1
-        ref: master
-
-    - uses: actions/checkout@v2
-      with:
-        repository: newdigate/teensy-gfx
-        path: deps/teensy-gfx
 
     - name: download toolchain
       run: |
@@ -116,7 +36,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE:FILEPATH="cmake/toolchains/teensy41.cmake"
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_TOOLCHAIN_FILE:FILEPATH="cmake/toolchains/teensy41.cmake" -Wno-dev
 
     - name: Build
       working-directory: ${{github.workspace}}/build
