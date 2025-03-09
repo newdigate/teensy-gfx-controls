@@ -1,4 +1,6 @@
 # teensy graphics controls 
+[![lib-linux](https://github.com/newdigate/teensy-gfx-controls/actions/workflows/lib_linux.yml/badge.svg)](https://github.com/newdigate/teensy-gfx-controls/actions/workflows/lib_linux.yml)
+[![lib_teensy](https://github.com/newdigate/teensy-gfx-controls/actions/workflows/lib_teensy.yml/badge.svg)](https://github.com/newdigate/teensy-gfx-controls/actions/workflows/lib_teensy.yml)
 
 * A portable user-interface library for managing scene controllers, menus, windows and display components.
 * This code is built for Arduino, but can be compiled and run on linux and mac osx.
