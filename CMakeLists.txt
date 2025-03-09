@@ -46,7 +46,6 @@ if (BUILD_EXAMPLE)
         DeclareAndFetch(rtmidi                          https://github.com/thestk/rtmidi.git master "/")
 
         DeclareAndFetchSubLibrary(teensy_x86_midi_stubs     extras/rtmidi/src)
-        DeclareAndFetch(teensy_ili9341_controls         https://github.com/newdigate/teensy_ili9341_controls master src)
         DeclareAndFetch(arduino_tftpianoview            https://github.com/newdigate/arduino-tftpianoview.git feature/generic src)
 
         add_subdirectory(examples/basic)
