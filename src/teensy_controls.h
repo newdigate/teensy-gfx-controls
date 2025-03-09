@@ -79,6 +79,10 @@ public:
     virtual void ActiveSensing() {}
     virtual void SystemReset() {}
     virtual void Tick() {}
+
+    bool NeedsRedraw() const {
+        return _needsRedraw;
+    }
 protected:
     std::function<void()> f_update = nullptr;
     std::vector<TeensyControl *> _children;
