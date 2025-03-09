@@ -1,4 +1,5 @@
 add_definitions(-fms-extensions)
 add_definitions(-DArduino=146)
-
-include(../../cmake/opengl.cmake)
+if (NOT BUILD_FOR_TEENSY)
+    include(../../cmake/opengl.cmake)
+endif ()
