@@ -316,7 +316,7 @@ public:
             return ;
         _children[_currentScene]->SystemReset();
     }
-    virtual void Tick()  {
+    void Tick() override {
         if (_currentScene < 0 || _currentScene >= _children.size())
             return ;
         _children[_currentScene]->Tick();
